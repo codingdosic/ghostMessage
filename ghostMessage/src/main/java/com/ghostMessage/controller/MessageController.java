@@ -1,0 +1,82 @@
+package com.ghostMessage.controller;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.ghostMessage.domain.Message;
+import com.ghostMessage.dto.MessageRequestDTO;
+import com.ghostMessage.dto.MessageResponseDTO;
+import com.ghostMessage.service.MessageService;
+
+import lombok.RequiredArgsConstructor;
+
+@RestController // 1. REST API용 컨트롤러임을 선언 -> http 요청을 처리하고, json 응답을 반환
+@RequestMapping("/api/messages") // 2. 공통 주소 설정
+@RequiredArgsConstructor
+@CrossOrigin(origins = "*") // 3. 브라우저 익스텐션에서 접근 가능하도록 허용(CORS 허용, 브라우저는 다른 도메인 요청을 차단하기 때문)
+public class MessageController {
+	
+	// 비즈니스 로직을 처리할 서비스 객체
+    private final MessageService messageService;
+    
+    // 메시지 추천 처리
+    @PostMapping("/{id}/vote") // POST http://localhost:8080/api/messages/{id}/vote?type={투표 타입}
+    public ResponseEntity<MessageResponseDTO> vote(
+    		@PathVariable(name = "id") Long id, // 투표할 메시지 id
+    		@RequestParam(name = "type") String type){ // 투표 타입(추천 / 비추천)
+    	
+    	MessageResponseDTO updated = messageService.vote(id, type);
+    	
+    	return ResponseEntity.ok(updated);
+    };
+
+    // 메시지 남기기
+    @PostMapping // post 요청
+    public ResponseEntity<Message> create(@RequestBody MessageRequestDTO dto) {
+    	
+        Message saved = messageService.createMessage(dto);
+        
+        return ResponseEntity.ok(saved); 
+    }
+
+    // 메시지 가져오기
+    @GetMapping
+    public ResponseEntity<List<MessageResponseDTO>> getList(
+            @RequestParam(name = "pageUrl") String pageUrl, 
+            @RequestParam(name = "anchorKey") String anchorKey) {
+    	
+        List<MessageResponseDTO> list = messageService.getMessages(pageUrl, anchorKey);
+        
+        return ResponseEntity.ok(list); // 200 상태코드 + 리스트 데이터
+    }
+    
+    // 메시지 삭제
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+    		@PathVariable(name = "id") Long id, // 투표할 메시지 id
+    		@RequestParam(name = "authorId") UUID authorId){
+    	
+    	messageService.deleteMessage(id, authorId);
+    	
+    	return ResponseEntity.noContent().build();
+    }
+    
+    @GetMapping("/all")
+    public ResponseEntity<List<MessageResponseDTO>> getAllInPage(@RequestParam(name = "pageUrl") String pageUrl){
+    	
+    	List<MessageResponseDTO> list = messageService.getAllMessagesInPage(pageUrl);
+    	
+    	return ResponseEntity.ok(list);
+    }
+}

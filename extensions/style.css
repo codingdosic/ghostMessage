@@ -1,0 +1,19 @@
+/* 유령 메시지가 있는 링크에 표시할 효과 */
+.ghost-indicator {
+  outline: 2px dotted rgba(150, 150, 255, 0.5);
+  box-shadow: 0 0 8px rgba(100, 100, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+/* 툴팁 기본 스타일 */
+.ghost-tooltip {
+  position: absolute;
+  background: rgba(20, 20, 30, 0.9);
+  color: #e0e0ff;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  z-index: 10000;
+  border-left: 3px solid #7a7aff;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}

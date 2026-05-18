@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Ghost Message Settings</title>
+    <style>
+        body { padding: 20px; font-family: sans-serif; }
+        .section { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h2>👻 유령 메시지 설정</h2>
+    <div class="section">
+        <label>메시지 정렬 기준</label>
+        <select id="sortOrder">
+            <option value="DESC">최신순 (최신 흔적이 맨 위)</option>
+            <option value="ASC">오래된순 (옛날 흔적이 맨 위)</option>
+        </select>
+    </div>
+    <button id="save">설정 저장</button>
+    <script src="options.js"></script>
+</body>
+</html>

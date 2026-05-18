@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+
+  "name": "Web Ghost Messages",
+
+  "version": "1.0",
+
+  "description": "find and write ghost messages on websites",
+
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+
+  "permissions": ["activeTab", "contextMenus", "storage"],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["style.css"]
+    }
+  ]
+
+}
