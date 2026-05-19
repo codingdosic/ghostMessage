@@ -11,6 +11,9 @@ public class MessageRequestDTO { // Data Transfer Object, 계층간 데이터 �
 	private UUID authorId; 
     private String pageUrl;
     private String anchorKey;
+    private String selector;
+    private String linkText;
+    private String imgSrc;
     private String type;
     private String content;
 }

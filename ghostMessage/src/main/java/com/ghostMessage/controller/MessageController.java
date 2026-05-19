@@ -34,18 +34,19 @@ public class MessageController {
     @PostMapping("/{id}/vote") // POST http://localhost:8080/api/messages/{id}/vote?type={투표 타입}
     public ResponseEntity<MessageResponseDTO> vote(
     		@PathVariable(name = "id") Long id, // 투표할 메시지 id
-    		@RequestParam(name = "type") String type){ // 투표 타입(추천 / 비추천)
+    		@RequestParam(name = "type") String type, // 투표 타입(추천 / 비추천)
+    		@RequestParam(name = "userId") UUID userId) { // [추가] 누가 투표했는지 정보
     	
-    	MessageResponseDTO updated = messageService.vote(id, type);
+    	MessageResponseDTO updated = messageService.vote(id, type, userId);
     	
     	return ResponseEntity.ok(updated);
     };
 
     // 메시지 남기기
     @PostMapping // post 요청
-    public ResponseEntity<Message> create(@RequestBody MessageRequestDTO dto) {
+    public ResponseEntity<MessageResponseDTO> create(@RequestBody MessageRequestDTO dto) {
     	
-        Message saved = messageService.createMessage(dto);
+        MessageResponseDTO saved = messageService.createMessage(dto);
         
         return ResponseEntity.ok(saved); 
     }

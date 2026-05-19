@@ -23,8 +23,16 @@ public class Message {
 	@Column(nullable = false)
 	private String anchorKey; // 타겟 링크 식별자
 	
-	private String type; // 메시지 타입
-	
+	@Column(nullable = true)
+	private String selector; // CSS Selector 정보 (선택 사항)
+
+	@Column(nullable = true)
+	private String linkText; // 링크 내부 텍스트
+
+	@Column(nullable = true)
+	private String imgSrc; // [추가] 링크 내 이미지 주소
+
+	private String type; // 메시지 타입	
 	@Column(length = 100) // 글자수 제한
 	private String content; // 메시지 본문
 	

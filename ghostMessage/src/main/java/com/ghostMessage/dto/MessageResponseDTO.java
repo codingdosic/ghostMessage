@@ -16,7 +16,10 @@ public class MessageResponseDTO {
 	private String nickname;
 	private String content;
 	private String type;
-	private String anchorKey; // [추가]
+	private String anchorKey;
+	private String selector;
+	private String linkText;
+	private String imgSrc;
 	private int upVoteScore;
 	private int downVoteScore;
 	private LocalDateTime createdAt;

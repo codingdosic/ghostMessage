@@ -14,9 +14,27 @@
     <div class="section">
         <label>메시지 정렬 기준</label>
         <select id="sortOrder">
-            <option value="DESC">최신순 (최신 흔적이 맨 위)</option>
-            <option value="ASC">오래된순 (옛날 흔적이 맨 위)</option>
+            <option value="SCORE">추천순</option>
+            <option value="DESC">최신순</option>
+            <option value="ASC">오래된순</option>
         </select>
+    </div>
+    <div class="section">
+        <label>하이라이트 설정</label>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <input type="checkbox" id="enableHighlight"> <span>하이라이트 사용</span>
+            <input type="color" id="highlightColor" value="#6200ee">
+            <input type="range" id="highlightOpacity" min="0" max="1" step="0.1" value="0.15">
+            <span id="opacityValue">15%</span>
+        </div>
+        
+        <!-- 실시간 미리보기 영역 -->
+        <div id="previewContainer" style="padding: 15px; border: 1px dashed #ccc; border-radius: 5px; background: #f9f9f9;">
+            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">실시간 미리보기</p>
+            <a id="previewLink" href="#" style="text-decoration: none; color: #000; font-weight: bold; padding: 2px 4px;">
+                이것은 유령 메시지가 있는 링크입니다 👻
+            </a>
+        </div>
     </div>
     <button id="save">설정 저장</button>
     <script src="options.js"></script>

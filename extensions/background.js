@@ -7,6 +7,20 @@ chrome.runtime.onInstalled.addListener(() => {
         title: "유령 메시지 남기기...",
         contexts: ["link"] // 링크 위에서 우클릭했을 때만 나타남
     });
+
+    // 고유 ID 확인 및 등록
+    chrome.storage.local.get(['userId'], (result) => {
+        if (!result.userId) {
+            fetch("http://localhost:8080/api/users/register", { method: "POST" })
+                .then(res => res.json())
+                .then(user => {
+                    chrome.storage.local.set({ userId: user.uuid }, () => {
+                        console.log("새 사용자 등록 완료:", user.uuid);
+                    });
+                })
+                .catch(err => console.error("사용자 등록 실패:", err));
+        }
+    });
 });
 
 // 2. 메뉴 클릭 이벤트 처리
@@ -37,19 +51,26 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(request.data)
         })
-        .then(res => res.json())
-        .then(data => sendResponse({ success: true, data }))
+        .then(async res => {
+            const data = await res.json();
+            if (res.ok) return { success: true, data };
+            return { success: false, error: data.message || "기록에 실패했습니다." };
+        })
+        .then(result => sendResponse(result))
         .catch(err => sendResponse({ success: false, error: err.message }));
         return true;
     }
 
-        // background.js의 onMessage 리스너 내부에 추가
     if (request.action === "voteMessage") {
-        fetch(`${API_BASE_URL}/${request.messageId}/vote?type=${request.type}`, {
+        fetch(`${API_BASE_URL}/${request.messageId}/vote?type=${request.type}&userId=${request.userId}`, {
             method: "POST"
         })
-        .then(res => res.json())
-        .then(data => sendResponse({ success: true, data }))
+        .then(async res => {
+            const data = await res.json();
+            if (res.ok) return { success: true, data };
+            return { success: false, error: data.message || "투표에 실패했습니다." };
+        })
+        .then(result => sendResponse(result))
         .catch(err => sendResponse({ success: false, error: err.message }));
         return true;
     }
