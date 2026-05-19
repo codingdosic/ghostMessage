@@ -7,13 +7,185 @@
 
 /* 툴팁 기본 스타일 */
 .ghost-tooltip {
-  position: absolute;
-  background: rgba(20, 20, 30, 0.9);
-  color: #e0e0ff;
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 13px;
-  z-index: 10000;
-  border-left: 3px solid #7a7aff;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    position: absolute;
+    z-index: 10000;
+    background: #1e1e2e; /* 딥 다크 테마 */
+    color: #cdd6f4;
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-family: 'Pretendard', sans-serif;
+    min-width: 200px;
+    max-width: 350px;
+    pointer-events: auto;
+}
+
+/* 커스텀 스크롤바 - 메시지 미관을 해치지 않는 깔끔한 디자인 */
+.ghost-tooltip div::-webkit-scrollbar {
+    width: 5px;
+}
+.ghost-tooltip div::-webkit-scrollbar-track {
+    background: transparent;
+}
+.ghost-tooltip div::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+.ghost-tooltip div::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+/* 메시지 아이템 스타일 */
+.message-item {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+.message-item:last-child {
+    border-bottom: none !important;
+}
+
+/* 좌하단 플로팅 HUD 라벨 */
+#ghost-hud {
+    position: fixed;
+    bottom: 15px;
+    left: 15px;
+    z-index: 999999;
+    background: rgba(30, 30, 46, 0.75); /* 반투명 딥 다크 */
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: #cdd6f4;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-family: sans-serif;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    pointer-events: none; /* 사이트 이용 방해 금지 */
+    user-select: none;
+    transition: opacity 0.3s;
+    opacity: 0.9;
+}
+
+#ghost-hud:hover {
+    opacity: 1;
+}
+
+.hud-item { display: flex; align-items: center; gap: 4px; }
+.hud-divider { width: 1px; height: 10px; background: rgba(255, 255, 255, 0.2); }
+
+/* 커스텀 모달 오버레이 */
+.ghost-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: sans-serif;
+}
+
+/* 모달 컨텐츠 박스 */
+.ghost-modal-content {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    padding: 24px;
+    border-radius: 16px;
+    width: 380px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    animation: ghost-fade-in 0.2s ease-out;
+}
+
+.ghost-modal-content h3 { margin: 0 0 16px 0; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+
+.ghost-modal-content label { display: block; font-size: 12px; margin-bottom: 6px; opacity: 0.8; }
+
+.ghost-modal-content select {
+    width: 100%;
+    background: #2a2a3c !important;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #ffffff !important;
+    padding: 10px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    box-sizing: border-box;
+    outline: none;
+    cursor: pointer;
+}
+
+.ghost-modal-content select option {
+    background: #1e1e2e !important;
+    color: #ffffff !important;
+}
+
+.ghost-modal-content textarea {
+    width: 100%;
+    background: #2a2a3c;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #ffffff;
+    padding: 10px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    box-sizing: border-box;
+    outline: none;
+    height: 100px; 
+    resize: none;
+}
+
+.ghost-modal-content select:focus, 
+.ghost-modal-content textarea:focus { border-color: #6200ee; background: rgba(255, 255, 255, 0.08); }
+
+.ghost-modal-buttons { display: flex; justify-content: flex-end; gap: 10px; }
+
+.ghost-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.ghost-btn-secondary { background: rgba(255, 255, 255, 0.1); color: #cdd6f4; }
+.ghost-btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
+
+.ghost-btn-primary { background: #6200ee; color: #fff; }
+.ghost-btn-primary:hover { background: #7c4dff; transform: translateY(-1px); }
+
+/* 토스트 알림 */
+.ghost-toast {
+    position: fixed;
+    bottom: 60px; /* HUD 위쪽에 표시 */
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(30, 30, 46, 0.95);
+    color: #cdd6f4;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 13px;
+    z-index: 2000000;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex; align-items: center; gap: 8px;
+    pointer-events: none;
+    animation: ghost-toast-in 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes ghost-fade-in {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes ghost-toast-in {
+    from { opacity: 0; bottom: 40px; }
+    to { opacity: 1; bottom: 60px; }
 }

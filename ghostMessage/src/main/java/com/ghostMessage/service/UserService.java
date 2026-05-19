@@ -19,4 +19,9 @@ public class UserService {
         // uuid는 엔티티의 @PrePersist에서 자동 생성됨
         return userRepository.save(user);
     }
-}
+
+    public User getUser(UUID uuid) {
+        return userRepository.findById(uuid)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+    }
+    }

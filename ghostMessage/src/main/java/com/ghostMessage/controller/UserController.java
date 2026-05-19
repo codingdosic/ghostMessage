@@ -18,4 +18,9 @@ public class UserController {
         User user = userService.registerNewUser(nickname);
         return ResponseEntity.ok(user);
     }
+
+    @GetMapping("/{uuid}")
+    public ResponseEntity<User> getUser(@PathVariable(name = "uuid") java.util.UUID uuid) {
+        return ResponseEntity.ok(userService.getUser(uuid));
+    }
 }

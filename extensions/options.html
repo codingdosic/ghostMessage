@@ -4,23 +4,45 @@
     <meta charset="UTF-8">
     <title>Ghost Message Settings</title>
     <style>
-        body { padding: 20px; font-family: sans-serif; }
-        .section { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        body { 
+            padding: 40px 20px; 
+            font-family: 'Pretendard', sans-serif; 
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h2 { text-align: center; color: #333; margin-top: 0; }
+        .section { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        .section:last-child { border-bottom: none; }
+        label { display: block; margin-bottom: 12px; font-weight: bold; color: #444; }
+        .reset-btn { font-size: 11px; margin-left: 10px; cursor: pointer; padding: 2px 6px; background: #eee; border: none; border-radius: 4px; }
+        #save { width: 100%; padding: 12px; font-weight: bold; cursor: pointer; background: #6200ee; color: white; border: none; border-radius: 8px; }
+        #save:hover { background: #7c4dff; }
     </style>
 </head>
 <body>
-    <h2>👻 유령 메시지 설정</h2>
+    <div class="container">
+        <h2>👻 유령 메시지 설정</h2>
+        <div class="section">
+            <label>메시지 정렬 기준</label>
+            <select id="sortOrder" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+                <option value="SCORE">추천순</option>
+                <option value="DESC">최신순</option>
+                <option value="ASC">오래된순</option>
+            </select>
+        </div>
+        <!-- ... 나머지 섹션들 ... -->
     <div class="section">
-        <label>메시지 정렬 기준</label>
-        <select id="sortOrder">
-            <option value="SCORE">추천순</option>
-            <option value="DESC">최신순</option>
-            <option value="ASC">오래된순</option>
-        </select>
-    </div>
-    <div class="section">
-        <label>하이라이트 설정</label>
+        <label>
+            하이라이트 설정
+            <button class="reset-btn" id="resetHighlight">초기화</button>
+        </label>
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
             <input type="checkbox" id="enableHighlight"> <span>하이라이트 사용</span>
             <input type="color" id="highlightColor" value="#6200ee">
@@ -30,13 +52,38 @@
         
         <!-- 실시간 미리보기 영역 -->
         <div id="previewContainer" style="padding: 15px; border: 1px dashed #ccc; border-radius: 5px; background: #f9f9f9;">
-            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">실시간 미리보기</p>
-            <a id="previewLink" href="#" style="text-decoration: none; color: #000; font-weight: bold; padding: 2px 4px;">
+            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">실시간 미리보기 (하이라이트)</p>
+            <a id="previewLink" href="#" style="text-decoration: none; color: #000; font-weight: bold; padding: 2px 4px; display: inline-block;">
                 이것은 유령 메시지가 있는 링크입니다 👻
             </a>
+
+            <p style="font-size: 12px; color: #666; margin: 15px 0 8px 0;">실시간 미리보기 (툴팁)</p>
+            <div id="previewTooltip" style="padding: 10px; border-radius: 8px; font-size: 13px; width: fit-content; min-width: 150px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); background-color: #1e1e2e; color: #cdd6f4;">
+                👻 유령 메시지 예시입니다.<br>
+                <small style="opacity: 0.7;">👍 12 👎 2</small>
+            </div>
         </div>
     </div>
-    <button id="save">설정 저장</button>
+    <div class="section">
+        <label>
+            툴팁 스타일 커스텀
+            <button class="reset-btn" id="resetTooltip">초기화</button>
+        </label>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; gap: 20px; align-items: center;">
+                <span>배경색</span>
+                <input type="color" id="tooltipBgColor" value="#1e1e2e">
+                <span>글자색</span>
+                <input type="color" id="tooltipTextColor" value="#cdd6f4">
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span>배경 투명도</span>
+                <input type="range" id="tooltipOpacity" min="0" max="1" step="0.1" value="0.9">
+                <span id="tooltipOpacityValue">90%</span>
+            </div>
+        </div>
+    </div>
+    <button id="save" style="margin-top: 10px; padding: 10px 20px; font-weight: bold; cursor: pointer;">설정 저장</button>
     <script src="options.js"></script>
 </body>
 </html>

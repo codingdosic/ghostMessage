@@ -17,19 +17,19 @@ public class Message {
 	
 	private UUID authorId; // 작성자 uuid
 	
-	@Column(nullable = false) // 컬럼 제약 조건
+	@Column(nullable = false, length = 2000) // 컬럼 제약 조건
 	private String pageUrl; // 메시지가 있는 페이지 주소
 	
-	@Column(nullable = false)
+	@Column(nullable = false, length = 2000)
 	private String anchorKey; // 타겟 링크 식별자
 	
-	@Column(nullable = true)
+	@Column(nullable = true, length = 2000)
 	private String selector; // CSS Selector 정보 (선택 사항)
 
-	@Column(nullable = true)
+	@Column(nullable = true, length = 2000)
 	private String linkText; // 링크 내부 텍스트
 
-	@Column(nullable = true)
+	@Column(nullable = true, length = 2000)
 	private String imgSrc; // [추가] 링크 내 이미지 주소
 
 	private String type; // 메시지 타입	

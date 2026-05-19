@@ -90,7 +90,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "fetchAllMessages") {
         const fetchUrl = `${API_BASE_URL}/all?pageUrl=${encodeURIComponent(request.pageUrl)}`;
         console.log("[GhostMessage] Background receiving fetchAllMessages for:", fetchUrl);
-        
+
         fetch(fetchUrl)
             .then(res => {
                 console.log("[GhostMessage] Background fetch status:", res.status, res.statusText);
@@ -104,6 +104,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 console.error("[GhostMessage] Background fetch error:", err);
                 sendResponse({ success: false, error: err.message });
             });
-        return true; 
+        return true;
     }
-});
+
+    if (request.action === "fetchUserInfo") {
+        fetch(`http://localhost:8080/api/users/${request.userId}`)
+            .then(res => res.json())
+            .then(data => sendResponse({ success: true, data }))
+            .catch(err => sendResponse({ success: false, error: err.message }));
+        return true;
+    }
+    });
