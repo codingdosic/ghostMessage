@@ -4,7 +4,7 @@ const API_BASE_URL = "http://localhost:8080/api/messages";
 chrome.runtime.onInstalled.addListener(() => {
     chrome.contextMenus.create({
         id: "leaveGhostMessage",
-        title: "유령 메시지 남기기...",
+        title: "Leave a Ghost Message...",
         contexts: ["link"] // 링크 위에서 우클릭했을 때만 나타남
     });
 
@@ -81,7 +81,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         })
         .then(res => {
             if (res.ok) sendResponse({ success: true });
-            else sendResponse({ success: false, error: "삭제 권한이 없거나 서버 오류입니다." });
+            else sendResponse({ success: false, error: "No permission to delete or server error." });
         })
         .catch(err => sendResponse({ success: false, error: err.message }));
         return true;

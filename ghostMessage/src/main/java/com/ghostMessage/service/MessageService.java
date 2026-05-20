@@ -31,22 +31,23 @@ public class MessageService {
 
     // 메시지 작성 (제한 로직 포함)
     @Transactional // 하나의 작업을 DB 트랙잭션으로 묶음
-    public MessageResponseDTO createMessage(MessageRequestDTO dto) { // 메시지 dto 객체를 사용
+    public MessageResponseDTO createMessage(MessageRequestDTO dto) {
     	
     	// 사용자 존재 여부 확인
     	User user = userRepository.findById(dto.getAuthorId()) 
-    			.orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다.")); // Optional 객체 예외처리
+    			.orElseThrow(() -> new RuntimeException("User not found.")); 
     	
     	resetLimitsIfNewDay(user);
     	 
     	// 일일 작성 제한 체크
     	if(user.getDailyMessageCount() >= 10) {
-    		throw new RuntimeException("오늘 작성 가능한 메시지 한도를 초과했습니다.");
+    		throw new RuntimeException("Daily message limit exceeded.");
     	}
 
-        Message message = new Message(); // 메시지 객체 생성 및 초기화 
+    	// 메시지 객체 생성 및 초기화 
+        Message message = new Message(); 
         
-        // [추가] 저장 전 URL 정규화 (소문자화 및 끝 슬래시 제거)
+        // 저장 전 URL 정규화 (소문자화 및 끝 슬래시 제거)
         String normalizedPageUrl = dto.getPageUrl().toLowerCase().replaceAll("/$", "");
         String normalizedAnchorKey = dto.getAnchorKey().toLowerCase().replaceAll("/$", "");
         
@@ -62,53 +63,45 @@ public class MessageService {
         // 작성 카운트 증가
         user.setDailyMessageCount(user.getDailyMessageCount() + 1);
         
-        Message saved = messageRepository.save(message); // 메시지 DB에 저장
+        // 메시지 DB에 저장
+        Message saved = messageRepository.save(message); 
+        
         return convertToResponseDTO(saved);
     }
 
     // 특정 위치의 메시지 목록 조회
     public List<MessageResponseDTO> getMessages(String pageUrl, String anchorKey) {
-    	// [추가] 조회 파라미터 정규화
+    	
+    	// 조회 파라미터 정규화
         String normPageUrl = pageUrl.toLowerCase().replaceAll("/$", "");
         String normAnchorKey = anchorKey.toLowerCase().replaceAll("/$", "");
         
     	// 쿼리 메소드의 결과 리스트 저장
     	List<Message> messages = messageRepository.findByPageUrlAndAnchorKeyOrderByCreatedAtDesc(normPageUrl, normAnchorKey);
     	
-    	return messages.stream().map(this::convertToResponseDTO).collect(Collectors.toList());
+    	return messages.stream()
+    			.map(this::convertToResponseDTO)
+    			.collect(Collectors.toList());
     }
     
-//    @Transactional
-//    public MessageResponseDTO vote(Long id, String type) {
-//    	
-//    	Message message = messageRepository.findById(id)
-//    			.orElseThrow(() -> new RuntimeException("메시지를 찾을 수 없습니다."));
-//    	
-//    	if("UP".equals(type)) {
-//    		message.setUpVoteScore(message.getUpVoteScore() + 1);
-//    	}else if("DOWN".equals(type)) {
-//    		message.setDownVoteScore(message.getDownVoteScore() + 1);
-//    	}
-//    	
-//    	return convertToResponseDTO(message);
-//    }
-    
+    // 메시지 투표 
     @Transactional
     public MessageResponseDTO vote(Long id, String type, UUID userId) {
+    	
         // 1. 유저 정보 조회 및 일일 제한 확인
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new RuntimeException("User not found."));
         
         resetLimitsIfNewDay(user); // 날짜 바뀌었으면 카운트 리셋
 
         // 2. 일일 투표 제한 체크 (예: 하루 20회)
         if (user.getDailyVoteCount() >= 20) {
-            throw new RuntimeException("오늘 행사할 수 있는 투표 한도를 초과했습니다.");
+            throw new RuntimeException("Daily vote limit exceeded.");
         }
 
         // 3. 메시지 존재 확인
         Message message = messageRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("메시지를 찾을 수 없습니다."));
+                .orElseThrow(() -> new RuntimeException("Message not found."));
 
         // 4. 기존 투표 내역 확인
         Optional<Vote> existingVote = voteRepository.findByMessageIdAndUserId(id, userId);
@@ -122,61 +115,89 @@ public class MessageService {
             Vote vote = existingVote.get();
             if (vote.getVoteType().equals(type)) {
                 // [Case 2] 이미 같은 버튼을 누른 경우 (추천 중인데 또 추천) -> 무시하거나 취소(선택)
-                throw new RuntimeException("이미 동일한 투표를 하셨습니다.");
+                throw new RuntimeException("You have already voted.");
             } else {
                 // [Case 3] 반대 버튼을 누른 경우 (추천 -> 비추천 등 전환)
-                applyVoteScore(message, vote.getVoteType(), -1); // 기존 점수 취소 (-1)
-                applyVoteScore(message, type, 1);               // 새로운 점수 반영 (+1)
-                vote.setVoteType(type); // 기록 업데이트
-                // 전환 시에는 일일 카운트를 추가로 늘리지 않음 (선택 사항)
+            	// 기존 점수 취소 (-1)
+                applyVoteScore(message, vote.getVoteType(), -1); 
+                // 새로운 점수 반영 (+1)
+                applyVoteScore(message, type, 1);  
+                // 기록 업데이트
+                vote.setVoteType(type); 
             }
         }
-
+        
         return convertToResponseDTO(message);
     }
 
-    // 투표 점수를 가감하는 내부 헬퍼 메서드
+    // 투표 점수 처리 메서드
     private void applyVoteScore(Message message, String type, int delta) {
-        if ("UP".equals(type)) {
+    	
+    	
+        if ("UP".equals(type)) { // 추천일 경우
             message.setUpVoteScore(message.getUpVoteScore() + delta);
-        } else if ("DOWN".equals(type)) {
+        } else if ("DOWN".equals(type)) { // 비추천일 경우
             message.setDownVoteScore(message.getDownVoteScore() + delta);
         }
     }
     
+    // 메시지 삭제 
     @Transactional
     public void deleteMessage(Long id, UUID authorId) {
     	
+    	// 메시지 존재 체크
     	Message message = messageRepository.findById(id)
-    			.orElseThrow(() -> new RuntimeException("메시지를 찾을 수 없습니다."));
+    			.orElseThrow(() -> new RuntimeException("Message not found."));
     	
+    	// 작성자 체크
     	if(!message.getAuthorId().equals(authorId)) {
-    		throw new RuntimeException("삭제 권한이 없습니다.");
+    		throw new RuntimeException("Permission denied.");
     	}
     	
+    	// 삭제 처리
     	messageRepository.delete(message);
     }
     
+    // 페이지 내 모든 메시지 가져오기
     public List<MessageResponseDTO> getAllMessagesInPage(String pageUrl){
     	
+    	// url 정규화
     	String normPageUrl = pageUrl.toLowerCase().replaceAll("/$", "");
     	
+    	// db에서 가져오기
     	List<Message> messages = messageRepository.findByPageUrl(normPageUrl);
     	
-    	return messages.stream().map(this::convertToResponseDTO).collect(Collectors.toList());
+    	return messages.stream()
+    			.map(this::convertToResponseDTO)
+    			.collect(Collectors.toList());
+    }
+    
+    // 작성한 모든 메시지 가져오기
+    public List<MessageResponseDTO> getMessagesByAuthor(UUID authorId){
+    	
+    	// db에서 가져오기
+    	List<Message> messages = messageRepository.findByAuthorIdOrderByCreatedAtDesc(authorId);
+    
+    	return messages.stream()
+    			.map(this::convertToResponseDTO)
+    			.collect(Collectors.toList());
     }
 
-    // [추가] 엔티티를 DTO로 변환하는 공통 메서드
+    // 엔티티를 DTO로 변환하는 메서드
     private MessageResponseDTO convertToResponseDTO(Message msg) {
+    	
+    	// 이름 존재 시 그대로 사용, 없을 시 익명
         String nickname = userRepository.findById(msg.getAuthorId())
                 .map(User::getNickname).orElse("anonymous");
-
+        
+        // dto 객체 생성 후 반환
         return MessageResponseDTO.builder()
                 .id(msg.getId())
                 .authorId(msg.getAuthorId())
                 .nickname(nickname)
                 .content(msg.getContent())
                 .type(msg.getType())
+                .pageUrl(msg.getPageUrl()) 
                 .anchorKey(msg.getAnchorKey())
                 .selector(msg.getSelector())
                 .linkText(msg.getLinkText())
@@ -187,10 +208,16 @@ public class MessageService {
                 .build();
     }
     
+    // 날짜가 지나면 한도를 초기화하는 메서드
     private void resetLimitsIfNewDay(User user) {
+    	
+    	// 현재 시간
         LocalDateTime now = LocalDateTime.now();
+        
+        // 현 시간 기준 자정
         LocalDateTime todayMidnight = now.toLocalDate().atStartOfDay();
 
+        // 초기화 시간이 없거나, todayMidnight 이  lastMessageResetAt 을 지났다면 초기화
         if (user.getLastMessageResetAt() == null || user.getLastMessageResetAt().isBefore(todayMidnight)) {
             user.setDailyMessageCount(0);
             user.setLastMessageResetAt(now);
@@ -200,4 +227,6 @@ public class MessageService {
             user.setLastVoteResetAt(now);
         }
     }
+    
+   
 }

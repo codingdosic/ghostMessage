@@ -28,23 +28,23 @@
 </head>
 <body>
     <div class="container">
-        <h2>👻 유령 메시지 설정</h2>
+        <h2>👻 Ghost Message Settings</h2>
         <div class="section">
-            <label>메시지 정렬 기준</label>
+            <label>Message Sort Order</label>
             <select id="sortOrder" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
-                <option value="SCORE">추천순</option>
-                <option value="DESC">최신순</option>
-                <option value="ASC">오래된순</option>
+                <option value="SCORE">Top Rated</option>
+                <option value="DESC">Newest</option>
+                <option value="ASC">Oldest</option>
             </select>
         </div>
         <!-- ... 나머지 섹션들 ... -->
     <div class="section">
         <label>
-            하이라이트 설정
-            <button class="reset-btn" id="resetHighlight">초기화</button>
+            Highlight Settings
+            <button class="reset-btn" id="resetHighlight">Reset</button>
         </label>
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-            <input type="checkbox" id="enableHighlight"> <span>하이라이트 사용</span>
+            <input type="checkbox" id="enableHighlight"> <span>Enable Highlights</span>
             <input type="color" id="highlightColor" value="#6200ee">
             <input type="range" id="highlightOpacity" min="0" max="1" step="0.1" value="0.15">
             <span id="opacityValue">15%</span>
@@ -52,38 +52,56 @@
         
         <!-- 실시간 미리보기 영역 -->
         <div id="previewContainer" style="padding: 15px; border: 1px dashed #ccc; border-radius: 5px; background: #f9f9f9;">
-            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">실시간 미리보기 (하이라이트)</p>
+            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Real-time Preview (Highlight)</p>
             <a id="previewLink" href="#" style="text-decoration: none; color: #000; font-weight: bold; padding: 2px 4px; display: inline-block;">
-                이것은 유령 메시지가 있는 링크입니다 👻
+                This is a link with a ghost message 👻
             </a>
 
-            <p style="font-size: 12px; color: #666; margin: 15px 0 8px 0;">실시간 미리보기 (툴팁)</p>
+            <p style="font-size: 12px; color: #666; margin: 15px 0 8px 0;">Real-time Preview (Tooltip)</p>
             <div id="previewTooltip" style="padding: 10px; border-radius: 8px; font-size: 13px; width: fit-content; min-width: 150px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); background-color: #1e1e2e; color: #cdd6f4;">
-                👻 유령 메시지 예시입니다.<br>
+                👻 Example ghost message.<br>
                 <small style="opacity: 0.7;">👍 12 👎 2</small>
             </div>
         </div>
     </div>
     <div class="section">
         <label>
-            툴팁 스타일 커스텀
-            <button class="reset-btn" id="resetTooltip">초기화</button>
+            Tooltip Style Custom
+            <button class="reset-btn" id="resetTooltip">Reset</button>
         </label>
         <div style="display: flex; flex-direction: column; gap: 12px;">
             <div style="display: flex; gap: 20px; align-items: center;">
-                <span>배경색</span>
+                <span>Background</span>
                 <input type="color" id="tooltipBgColor" value="#1e1e2e">
-                <span>글자색</span>
+                <span>Text Color</span>
                 <input type="color" id="tooltipTextColor" value="#cdd6f4">
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span>배경 투명도</span>
+                <span>Opacity</span>
                 <input type="range" id="tooltipOpacity" min="0" max="1" step="0.1" value="0.9">
                 <span id="tooltipOpacityValue">90%</span>
             </div>
         </div>
     </div>
-    <button id="save" style="margin-top: 10px; padding: 10px 20px; font-weight: bold; cursor: pointer;">설정 저장</button>
+
+    <!-- 작성한 메시지 모아보기 섹션 추가 -->
+    <div class="section" id="myMessagesSection">
+        <label>📝 My Messages</label>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <input type="text" id="searchContent" placeholder="Search messages..." 
+                   style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd; outline: none;">
+            <select id="myMessageSort" style="width: 120px; padding: 10px; border-radius: 8px; border: 1px solid #ddd; cursor: pointer;">
+                <option value="score">👍 Top Rated</option>
+                <option value="desc">🕒 Newest</option>
+                <option value="asc">⏳ Oldest</option>
+            </select>
+        </div>
+        <div id="myMessageList" style="min-height: 150px; max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 12px; padding: 15px; background: #fafafa;">
+            <p style="text-align: center; color: #aaa; font-size: 13px; margin-top: 60px;">Your messages will appear here.</p>
+        </div>
+    </div>
+
+    <button id="save" style="margin-top: 10px; padding: 10px 20px; font-weight: bold; cursor: pointer;">Save Settings</button>
     <script src="options.js"></script>
 </body>
 </html>

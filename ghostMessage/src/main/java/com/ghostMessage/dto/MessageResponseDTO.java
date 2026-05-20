@@ -10,17 +10,21 @@ import lombok.Getter;
 @Builder
 public class MessageResponseDTO {
 	
-	// 조회 시엔 메시지 id, 작성자 id, 작성자 이름, 본문, 타입, 추천수를 보면 됨 
-	private Long id;
-	private UUID authorId;
-	private String nickname;
-	private String content;
-	private String type;
-	private String anchorKey;
-	private String selector;
-	private String linkText;
-	private String imgSrc;
-	private int upVoteScore;
-	private int downVoteScore;
-	private LocalDateTime createdAt;
+	// reponse dto : 서버 -> 클라이언트 데이터 전송에 사용, 서버가 보여줘야 할 정보만 담음
+	
+	private Long id; // 메시지 id
+	private UUID authorId; // 사용자 id
+	private String nickname; // 사용자 이름
+
+	private String pageUrl; // 페이지 url
+	private String anchorKey; // 요소 키
+	private String selector; // css 셀렉터
+	private String linkText; // 내부 텍스트
+	private String imgSrc; // 이미지 리소스
+	
+	private String content; // 메시지 본문
+	private String type; // 메시지 타입
+	private int upVoteScore; // 추천 수
+	private int downVoteScore; // 비추천 수
+	private LocalDateTime createdAt; // 작성일자
 }

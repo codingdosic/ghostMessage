@@ -15,12 +15,12 @@ public class GhostMessageApplication {
 	    return args -> {
 	        try (java.sql.Connection conn = dataSource.getConnection()) {
 	            System.out.println("------------------------------------------");
-	            System.out.println("✅ DB 연결 성공! 현재 주소: " + conn.getMetaData().getURL());
+	            System.out.println("✅ DB Connection Success! URL: " + conn.getMetaData().getURL());
 	            System.out.println("------------------------------------------");
 	            
 	        } catch (Exception e) {
 	            System.err.println("------------------------------------------");
-	            System.err.println("❌ DB 연결 실패! 설정 파일을 확인하세요: " + e.getMessage());
+	            System.err.println("❌ DB Connection Failed! Check your settings: " + e.getMessage());
 	            System.err.println("------------------------------------------");
 	        }
 	    };

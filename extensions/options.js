@@ -1,7 +1,7 @@
 // 초기 기본값 정의
 const DEFAULTS = {
-    sortOrder: 'DESC',
-    enableHighlight: true,
+    sortOrder: 'SCORE', 
+    enableHighlight: true, 
     highlightColor: '#6200ee',
     highlightOpacity: 0.15,
     tooltipBgColor: '#1e1e2e',
@@ -45,6 +45,7 @@ chrome.storage.sync.get(DEFAULTS, (items) => {
 
 // 2. 실시간 미리보기 업데이트 함수
 function updatePreview() {
+    
     // 하이라이트 미리보기
     const isEnabled = enableHighlightEl.checked;
     const highlightColor = highlightColorEl.value;
@@ -83,7 +84,7 @@ function updatePreview() {
 
 // 초기화 버튼 로직
 resetHighlightBtn.onclick = () => {
-    if (confirm("하이라이트 설정을 초기값으로 되돌리시겠습니까?")) {
+    if (confirm("Reset highlight settings to default?")) {
         enableHighlightEl.checked = DEFAULTS.enableHighlight;
         highlightColorEl.value = DEFAULTS.highlightColor;
         highlightOpacityEl.value = DEFAULTS.highlightOpacity;
@@ -92,7 +93,7 @@ resetHighlightBtn.onclick = () => {
 };
 
 resetTooltipBtn.onclick = () => {
-    if (confirm("툴팁 스타일 설정을 초기값으로 되돌리시겠습니까?")) {
+    if (confirm("Reset tooltip style settings to default?")) {
         tooltipBgColorEl.value = DEFAULTS.tooltipBgColor;
         tooltipTextColorEl.value = DEFAULTS.tooltipTextColor;
         tooltipOpacityEl.value = DEFAULTS.tooltipOpacity;
@@ -111,6 +112,110 @@ saveBtn.onclick = () => {
         tooltipTextColor: tooltipTextColorEl.value,
         tooltipOpacity: parseFloat(tooltipOpacityEl.value)
     }, () => {
-        alert('설정이 저장되었습니다!');
+        alert('Settings saved!');
     });
 };
+
+// ---------------------------------------------------------
+// 5. 내가 작성한 메시지 관리 로직 (Phase 26-2)
+// ---------------------------------------------------------
+const searchContentEl = document.getElementById('searchContent');
+const myMessageSortEl = document.getElementById('myMessageSort');
+const myMessageListEl = document.getElementById('myMessageList');
+
+let myMessagesData = []; // 백엔드에서 가져온 원본 데이터
+
+// 메시지 로드 함수
+function loadMyMessages() {
+    chrome.storage.local.get(['userId'], (result) => {
+        const userId = result.userId;
+        if (!userId) {
+            myMessageListEl.innerHTML = '<p style="text-align: center; color: #ff5252; font-size: 13px; margin-top: 60px;">User information not found.</p>';
+            return;
+        }
+
+        fetch(`http://localhost:8080/api/messages/user/${userId}`)
+            .then(res => res.json())
+            .then(data => {
+                myMessagesData = data;
+                renderMyMessages();
+            })
+            .catch(err => {
+                console.error("Failed to load messages:", err);
+                myMessageListEl.innerHTML = '<p style="text-align: center; color: #ff5252; font-size: 13px; margin-top: 60px;">An error occurred while loading data.</p>';
+            });
+    });
+}
+
+// 메시지 렌더링 함수
+function renderMyMessages() {
+    const searchTerm = searchContentEl.value.toLowerCase();
+    const sortType = myMessageSortEl.value;
+
+    // 1. 필터링 (내용 검색)
+    let filtered = myMessagesData.filter(msg => 
+        msg.content.toLowerCase().includes(searchTerm)
+    );
+
+    // 2. 정렬
+    filtered.sort((a, b) => {
+        if (sortType === 'score') {
+            return (b.upVoteScore - b.downVoteScore) - (a.upVoteScore - a.downVoteScore);
+        } else if (sortType === 'desc') {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        } else if (sortType === 'asc') {
+            return new Date(a.createdAt) - new Date(b.createdAt);
+        }
+        return 0;
+    });
+
+    // 3. HTML 생성 및 삽입
+    if (filtered.length === 0) {
+        myMessageListEl.innerHTML = '<p style="text-align: center; color: #aaa; font-size: 13px; margin-top: 60px;">No messages found.</p>';
+        return;
+    }
+
+    myMessageListEl.innerHTML = filtered.map(msg => `
+        <div class="message-item" data-url="${msg.pageUrl}" style="border-bottom: 1px solid #eee; padding: 12px 0; color: #333; cursor: pointer; transition: background 0.2s;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; pointer-events: none;">
+                <span style="font-size: 11px; font-weight: bold; color: #6200ee; background: #f0e6ff; padding: 2px 6px; border-radius: 4px;">
+                    ${msg.type || 'Normal'}
+                </span>
+                <span style="font-size: 11px; color: #999;">${new Date(msg.createdAt).toLocaleString()}</span>
+            </div>
+            <div style="font-size: 14px; margin-bottom: 8px; line-height: 1.4; pointer-events: none;">${msg.content}</div>
+            <div style="display: flex; align-items: center; gap: 12px; font-size: 12px; color: #666; pointer-events: none;">
+                <span>👍 ${msg.upVoteScore}</span>
+                <span>👎 ${msg.downVoteScore}</span>
+                <span style="margin-left: auto; font-size: 10px; color: #aaa; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${msg.pageUrl}">
+                    📍 ${new URL(msg.pageUrl).hostname}
+                </span>
+            </div>
+        </div>
+    `).join('');
+}
+
+// 이벤트 리스너 등록
+searchContentEl.addEventListener('input', renderMyMessages);
+myMessageSortEl.addEventListener('change', renderMyMessages);
+
+// [추가] 메시지 클릭 시 해당 페이지 이동
+myMessageListEl.addEventListener('click', (e) => {
+    const item = e.target.closest('.message-item');
+    if (item && item.dataset.url) {
+        window.open(item.dataset.url, '_blank');
+    }
+});
+
+// 호버 시 배경색 변경 (CSS 없이 JS로 간단히 처리)
+myMessageListEl.addEventListener('mouseover', (e) => {
+    const item = e.target.closest('.message-item');
+    if (item) item.style.backgroundColor = '#f8f8f8';
+});
+myMessageListEl.addEventListener('mouseout', (e) => {
+    const item = e.target.closest('.message-item');
+    if (item) item.style.backgroundColor = 'transparent';
+});
+
+// 초기 로드 실행
+loadMyMessages();
