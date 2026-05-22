@@ -3,11 +3,15 @@ package com.ghostMessage.dto;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class MessageResponseDTO {
 	
 	// reponse dto : 서버 -> 클라이언트 데이터 전송에 사용, 서버가 보여줘야 할 정보만 담음

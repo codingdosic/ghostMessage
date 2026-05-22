@@ -1,5 +1,6 @@
 package com.ghostMessage.service;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import com.ghostMessage.domain.User;
 import com.ghostMessage.repository.UserRepository;
@@ -27,6 +28,7 @@ public class UserService {
     }
 
     // 사용자 정보
+    @Cacheable(value = "userInfo", key = "#uuid")
     public User getUser(UUID uuid) {
         return userRepository.findById(uuid)
                 .orElseThrow(() -> new RuntimeException("User not found."));

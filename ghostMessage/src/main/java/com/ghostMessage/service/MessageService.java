@@ -8,6 +8,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import com.ghostMessage.domain.Message;
@@ -33,6 +36,11 @@ public class MessageService {
 
     // 메시지 작성 (제한 로직 포함)
     @Transactional // 하나의 작업을 DB 트랙잭션으로 묶음
+    @Caching(evict = {
+        @CacheEvict(value = "pageMessages", key = "#dto.pageUrl.toLowerCase().replaceAll('/$', '')"),
+        @CacheEvict(value = "tooltipMessages", key = "#dto.pageUrl.toLowerCase().replaceAll('/$', '') + ':' + #dto.anchorKey.toLowerCase().replaceAll('/$', '')"),
+        @CacheEvict(value = "userInfo", key = "#dto.authorId")
+    })
     public MessageResponseDTO createMessage(MessageRequestDTO dto) {
     	
     	// 사용자 존재 여부 확인
@@ -72,6 +80,7 @@ public class MessageService {
     }
 
     // 특정 위치의 메시지 목록 조회
+    @Cacheable(value = "tooltipMessages", key = "#pageUrl.toLowerCase().replaceAll('/$', '') + ':' + #anchorKey.toLowerCase().replaceAll('/$', '')")
     public List<MessageResponseDTO> getMessages(String pageUrl, String anchorKey) {
     	
     	// 조회 파라미터 정규화
@@ -88,6 +97,11 @@ public class MessageService {
     
     // 메시지 투표 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "pageMessages", allEntries = true), // 투표는 영향을 받는 페이지가 다양할 수 있어 전체 페이지 캐시 무효화 (또는 해당 페이지 URL 필요)
+        @CacheEvict(value = "tooltipMessages", allEntries = true),
+        @CacheEvict(value = "userInfo", key = "#userId")
+    })
     public MessageResponseDTO vote(Long id, String type, UUID userId) {
     	
         // 1. 유저 정보 조회 및 일일 제한 확인
@@ -145,6 +159,10 @@ public class MessageService {
     
     // 메시지 삭제 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "pageMessages", allEntries = true),
+        @CacheEvict(value = "tooltipMessages", allEntries = true)
+    })
     public void deleteMessage(Long id, UUID authorId) {
     	
     	// 메시지 존재 체크
@@ -161,6 +179,7 @@ public class MessageService {
     }
     
     // 페이지 내 모든 메시지 가져오기
+    @Cacheable(value = "pageMessages", key = "#pageUrl.toLowerCase().replaceAll('/$', '')")
     public List<MessageResponseDTO> getAllMessagesInPage(String pageUrl){
     	
     	// url 정규화

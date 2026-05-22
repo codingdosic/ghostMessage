@@ -8,6 +8,14 @@ spring:
     password: 1 # 본인의 DB 계정 PW
     driver-class-name: org.postgresql.Driver
 
+  data:
+    redis:
+      host: localhost # 도커 환경 시 'redis'로 변경
+      port: 6379
+
+  cache:
+    type: redis
+
   jpa:
     hibernate:
       ddl-auto: update # 자바 코드를 바탕으로 테이블을 자동 생성/수정함
