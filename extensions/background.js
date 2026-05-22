@@ -1,4 +1,6 @@
-const API_BASE_URL = "http://localhost:8080/api/messages";
+// const SERVER_URL = "http://168.107.12.18:8080"; // 운영 서버
+const SERVER_URL = "http://localhost:8080"; // 로컬 서버
+const API_BASE_URL = `${SERVER_URL}/api/messages`;
 
 // 1. 익스텐션 설치 시 우클릭 메뉴 생성
 chrome.runtime.onInstalled.addListener(() => {
@@ -11,7 +13,7 @@ chrome.runtime.onInstalled.addListener(() => {
     // 고유 ID 확인 및 등록
     chrome.storage.local.get(['userId'], (result) => {
         if (!result.userId) {
-            fetch("http://localhost:8080/api/users/register", { method: "POST" })
+            fetch(`${SERVER_URL}/api/users/register`, { method: "POST" })
                 .then(res => res.json())
                 .then(user => {
                     chrome.storage.local.set({ userId: user.uuid }, () => {
@@ -108,10 +110,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 
     if (request.action === "fetchUserInfo") {
-        fetch(`http://localhost:8080/api/users/${request.userId}`)
+        fetch(`${SERVER_URL}/api/users/${request.userId}`)
             .then(res => res.json())
             .then(data => sendResponse({ success: true, data }))
             .catch(err => sendResponse({ success: false, error: err.message }));
         return true;
+    }
+
+    if (request.action === "updateMenuVisibility") {
+        chrome.contextMenus.update("leaveGhostMessage", { visible: request.visible }, () => {
+            if (chrome.runtime.lastError) {
+                // 메뉴가 아직 생성되지 않았거나 에러가 있는 경우 무시
+            }
+        });
+        return false;
     }
     });

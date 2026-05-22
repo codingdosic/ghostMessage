@@ -1,6 +1,8 @@
 package com.ghostMessage.service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -212,19 +214,21 @@ public class MessageService {
     private void resetLimitsIfNewDay(User user) {
     	
     	// 현재 시간
-        LocalDateTime now = LocalDateTime.now();
+        ZonedDateTime nowUtc = ZonedDateTime.now(ZoneId.of("UTC"));
         
         // 현 시간 기준 자정
-        LocalDateTime todayMidnight = now.toLocalDate().atStartOfDay();
+        ZonedDateTime todayMidnightUtc = nowUtc.toLocalDate().atStartOfDay(ZoneId.of("UTC"));
 
         // 초기화 시간이 없거나, todayMidnight 이  lastMessageResetAt 을 지났다면 초기화
-        if (user.getLastMessageResetAt() == null || user.getLastMessageResetAt().isBefore(todayMidnight)) {
+        if (user.getLastMessageResetAt() == null || 
+            user.getLastMessageResetAt().atZone(ZoneId.of("UTC")).isBefore(todayMidnightUtc)) {
             user.setDailyMessageCount(0);
-            user.setLastMessageResetAt(now);
+            user.setLastMessageResetAt(nowUtc.toLocalDateTime()); // DB에는 로컬타임으로 저장되더라도 기준은 UTC
         }
-        if (user.getLastVoteResetAt() == null || user.getLastVoteResetAt().isBefore(todayMidnight)) {
+        if (user.getLastVoteResetAt() == null || 
+            user.getLastVoteResetAt().atZone(ZoneId.of("UTC")).isBefore(todayMidnightUtc)) {
             user.setDailyVoteCount(0);
-            user.setLastVoteResetAt(now);
+            user.setLastVoteResetAt(nowUtc.toLocalDateTime());
         }
     }
     

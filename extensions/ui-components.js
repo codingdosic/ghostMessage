@@ -95,29 +95,38 @@ function showWriteModal(onSave) {
 
 // --- Tooltips ---
 function generateMessagesHtml(messageList) {
-    return messageList.map(msg => `
-        <div class="message-item" style="border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 4px 0;">   
-            <div style="margin-bottom: 2px;">
-                <span style="display:inline-block; font-size: 10px; font-weight: bold; opacity: 0.7;">
-                    ${msg.type || 'Normal'}
-                </span>
-            </div>
-            <div style="margin: 2px 0; font-size: 13px;">${msg.content}</div>
-            <div style="font-size: 11px; display: flex; align-items: center; gap: 8px; margin-top: 2px;">
-                <div style="display: flex; gap: 6px;">
-                    <button class="vote-up-btn" data-id="${msg.id}" style="background:none; border:none; color:inherit; cursor:pointer; padding:0; font-size: 11px;">
-                        👍 ${msg.upVoteScore}
-                    </button>
-                    <button class="vote-down-btn" data-id="${msg.id}" style="background:none; border:none; color:inherit; cursor:pointer; padding:0; font-size: 11px;">
-                        👎 ${msg.downVoteScore}
-                    </button>
+    return messageList.map(msg => {
+        const date = msg.createdAt ? new Date(msg.createdAt) : new Date();
+        const year = String(date.getFullYear()).slice(-2);
+        const dateStr = `${year}.${date.getMonth() + 1}.${date.getDate()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        
+        return `
+            <div class="message-item" style="border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 2px 0; position: relative;">   
+                <div style="position: absolute; top: 2px; right: 0; font-size: 9px; opacity: 0.6;">
+                    ${dateStr}
                 </div>
-                <div style="margin-left: auto;">
-                    ${msg.authorId === MY_ID ? `<button class="delete-btn" data-id="${msg.id}" style="background:none; border:none; color: #ff5252; cursor:pointer; font-size: 10px; font-weight: bold;">Delete</button>` : ''}   
+                <div style="margin-bottom: 5px;">
+                    <span style="display:inline-block; font-size: 10px; font-weight: bold; opacity: 0.7;">
+                        ${msg.type || 'Normal'}
+                    </span>
+                </div>
+                <div style="margin: 5px 0; font-size: 13px; padding-right: 65px; word-break: break-all;">${msg.content}</div>
+                <div style="font-size: 11px; display: flex; align-items: center; gap: 8px; margin-top: 5px;">
+                    <div style="display: flex; gap: 6px;">
+                        <button class="vote-up-btn" data-id="${msg.id}" style="background:none; border:none; color:inherit; cursor:pointer; padding:0; font-size: 11px;">
+                            👍 ${msg.upVoteScore}
+                        </button>
+                        <button class="vote-down-btn" data-id="${msg.id}" style="background:none; border:none; color:inherit; cursor:pointer; padding:0; font-size: 11px;">
+                            👎 ${msg.downVoteScore}
+                        </button>
+                    </div>
+                    <div style="margin-left: auto;">
+                        ${msg.authorId === MY_ID ? `<button class="delete-btn" data-id="${msg.id}" style="background:none; border:none; color: #ff5252; cursor:pointer; font-size: 10px; font-weight: bold;">Delete</button>` : ''}   
+                    </div>
                 </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function bindTooltipEvents(container, messageList) {
@@ -178,6 +187,8 @@ function hideTooltip() {
     }
 }
 
+let lastUpdateDay = new Date().getUTCDate();
+
 // --- HUD ---
 function createHUD() {
     if (document.getElementById('ghost-hud')) return;
@@ -190,7 +201,7 @@ function createHUD() {
         <div class="hud-divider"></div>
         <div class="hud-item" title="Votes Left Today">👍 <span id="hud-remain-vote">20</span></div>
         <div class="hud-divider"></div>
-        <div class="hud-item" title="Time until Reset">⏳ <span id="hud-timer">00:00</span></div>
+        <div class="hud-item" title="Time until Reset (UTC 00:00)">⏳ <span id="hud-timer">00:00</span></div>
     `;
     document.body.appendChild(hud);
     updateHUD();
@@ -219,8 +230,24 @@ function updateHUD() {
 
     const updateTimer = () => {
         const now = new Date();
-        const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-        const diffMs = tomorrow - now;
+        
+        // UTC 기준 날짜가 바뀌었는지 체크
+        const currentUtcDay = now.getUTCDate();
+        if (currentUtcDay !== lastUpdateDay) {
+            lastUpdateDay = currentUtcDay;
+            updateHUD(); // 정보 갱신
+            return;
+        }
+
+        // 다음 날 UTC 00:00:00 계산
+        const nextUtcReset = Date.UTC(
+            now.getUTCFullYear(), 
+            now.getUTCMonth(), 
+            now.getUTCDate() + 1, 
+            0, 0, 0
+        );
+
+        const diffMs = nextUtcReset - now.getTime();
         const hours = Math.floor(diffMs / (1000 * 60 * 60));
         const minutes = Math.floor((diffMs / (1000 * 60)) % 60);
         const seconds = Math.floor((diffMs / 1000) % 60);

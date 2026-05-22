@@ -34,12 +34,74 @@ function init() {
 }
 
 // ---------------------------------------------------------
+// 0. 가치 있는 링크 판별 로직
+// ---------------------------------------------------------
+function isValuableLink(link) {
+    if (!link || !link.href) return false;
+
+    const href = link.getAttribute('href').trim();
+    const text = link.innerText.trim();
+    const hasImg = link.querySelector('img') !== null;
+    const className = (link.className || "").toString().toLowerCase();
+    const id = (link.id || "").toLowerCase();
+
+    // 1. 기술적 무의미한 링크 (해시, 자바스크립트, 빈 값)
+    if (!href || href === "#" || href.startsWith("javascript:")) return false;
+    if (!link.href.startsWith("http")) return false;
+
+    // 2. 유튜브 노이즈 필터링 (썸네일, 진행바 등)
+    if (window.location.hostname.includes("youtube.com")) {
+        // 썸네일 관련 태그나 ID, 클래스 정밀 체크
+        const isThumbnail = link.closest('ytd-thumbnail') || 
+                            id === "thumbnail" || 
+                            className.includes("ytd-thumbnail") ||
+                            link.closest('#thumbnail');
+        
+        if (isThumbnail) return false;
+
+        // 기타 유튜브 제어 요소들
+        if (id === "endpoint" || className.includes("ytd-guide-entry-renderer")) {
+            if (text.length < 2) return false;
+        }
+    }
+
+    // 3. 광고 관련 키워드 필터링 (부모 요소까지 확장)
+    const adKeywords = ["ad-", "ads-", "sponsored", "banner", "promotion", "ytp-ad"];
+    const isAd = adKeywords.some(kw => 
+        className.includes(kw) || 
+        id.includes(kw) || 
+        link.closest(`[class*="${kw}"], [id*="${kw}"]`)
+    );
+    if (isAd) return false;
+
+    // 4. 구조적 빈 링크 (텍스트도 없고 이미지도 없음)
+    if (text.length === 0 && !hasImg) return false;
+
+    return true;
+}
+
+// ---------------------------------------------------------
 // 2. 이벤트 리스너 등록
 // ---------------------------------------------------------
 
-// 우클릭 시점의 요소 기억 (메시지 작성용)
+// 마우스 다운 시점에 미리 메뉴 가시성 판단 (contextmenu보다 빠름)
+document.addEventListener('mousedown', (e) => {
+    if (e.button === 2) { // 우클릭
+        const link = e.target.closest('a');
+        lastRightClickedElement = link;
+        const visible = isValuableLink(link);
+        chrome.runtime.sendMessage({ action: "updateMenuVisibility", visible: visible });
+    }
+}, true);
+
+// 우클릭 시점의 요소 기억 (보조)
 document.addEventListener('contextmenu', (e) => {
-    lastRightClickedElement = e.target.closest('a');
+    const link = e.target.closest('a');
+    if (link) {
+        lastRightClickedElement = link;
+        const visible = isValuableLink(link);
+        chrome.runtime.sendMessage({ action: "updateMenuVisibility", visible: visible });
+    }
 }, true);
 
 // 링크 호버 시 툴팁 표시
@@ -86,7 +148,12 @@ document.addEventListener('mouseover', (e) => {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "openWriteModal") {
         const targetLink = lastRightClickedElement; 
-        if (!targetLink) return;
+        
+        // [최종 방어] 링크가 없거나 가치가 없는 링크라면 모달을 띄우지 않음
+        if (!targetLink || !isValuableLink(targetLink)) {
+            console.log("[GhostMessage] Invalid link for messaging. Action cancelled.");
+            return;
+        }
 
         showWriteModal((content, type) => {
             const anchorKey = normalizeUrl(targetLink.href);
