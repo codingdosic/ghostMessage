@@ -37,46 +37,6 @@ function init() {
 // 0. 가치 있는 링크 판별 로직
 // ---------------------------------------------------------
 function isValuableLink(link) {
-    if (!link || !link.href) return false;
-
-    const href = link.getAttribute('href').trim();
-    const text = link.innerText.trim();
-    const hasImg = link.querySelector('img') !== null;
-    const className = (link.className || "").toString().toLowerCase();
-    const id = (link.id || "").toLowerCase();
-
-    // 1. 기술적 무의미한 링크 (해시, 자바스크립트, 빈 값)
-    if (!href || href === "#" || href.startsWith("javascript:")) return false;
-    if (!link.href.startsWith("http")) return false;
-
-    // 2. 유튜브 노이즈 필터링 (썸네일, 진행바 등)
-    if (window.location.hostname.includes("youtube.com")) {
-        // 썸네일 관련 태그나 ID, 클래스 정밀 체크
-        const isThumbnail = link.closest('ytd-thumbnail') || 
-                            id === "thumbnail" || 
-                            className.includes("ytd-thumbnail") ||
-                            link.closest('#thumbnail');
-        
-        if (isThumbnail) return false;
-
-        // 기타 유튜브 제어 요소들
-        if (id === "endpoint" || className.includes("ytd-guide-entry-renderer")) {
-            if (text.length < 2) return false;
-        }
-    }
-
-    // 3. 광고 관련 키워드 필터링 (부모 요소까지 확장)
-    const adKeywords = ["ad-", "ads-", "sponsored", "banner", "promotion", "ytp-ad"];
-    const isAd = adKeywords.some(kw => 
-        className.includes(kw) || 
-        id.includes(kw) || 
-        link.closest(`[class*="${kw}"], [id*="${kw}"]`)
-    );
-    if (isAd) return false;
-
-    // 4. 구조적 빈 링크 (텍스트도 없고 이미지도 없음)
-    if (text.length === 0 && !hasImg) return false;
-
     return true;
 }
 

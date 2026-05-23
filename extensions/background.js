@@ -1,5 +1,5 @@
-// const SERVER_URL = "http://168.107.12.18:8080"; // 운영 서버
-const SERVER_URL = "http://localhost:8080"; // 로컬 서버
+const SERVER_URL = "http://168.107.12.18:8080"; // 운영 서버
+// const SERVER_URL = "http://localhost:8080"; // 로컬 서버
 const API_BASE_URL = `${SERVER_URL}/api/messages`;
 
 // 1. 익스텐션 설치 시 우클릭 메뉴 생성

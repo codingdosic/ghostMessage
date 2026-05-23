@@ -125,8 +125,8 @@ const myMessageListEl = document.getElementById('myMessageList');
 
 let myMessagesData = []; // 백엔드에서 가져온 원본 데이터
 
-// const SERVER_URL = "http://168.107.12.18:8080"; // 운영 서버
-const SERVER_URL = "http://localhost:8080"; // 로컬 서버
+const SERVER_URL = "http://168.107.12.18:8080"; // 운영 서버
+//onst SERVER_URL = "http://localhost:8080"; // 로컬 서버
 
 // [추가] 내 메시지 목록 불러오기
 function loadMyMessages() {
