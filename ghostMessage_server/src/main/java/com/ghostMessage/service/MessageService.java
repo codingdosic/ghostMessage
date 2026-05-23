@@ -115,8 +115,8 @@ public class MessageService {
             throw new RuntimeException("Daily vote limit exceeded.");
         }
 
-        // 3. 메시지 존재 확인
-        Message message = messageRepository.findById(id)
+        // 3. 메시지 존재 확인 (비관적 락 적용)
+        Message message = messageRepository.findByIdWithLock(id)
                 .orElseThrow(() -> new RuntimeException("Message not found."));
 
         // 4. 기존 투표 내역 확인

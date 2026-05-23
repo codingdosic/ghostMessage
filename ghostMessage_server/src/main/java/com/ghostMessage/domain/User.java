@@ -26,6 +26,9 @@ public class User {
 	private LocalDateTime lastMessageResetAt; // 메시지 제한 초기화 시점
 	private LocalDateTime lastVoteResetAt; // 추천 제한 초기화 시점
 	
+	@Version // 낙관적 락을 위한 버전 관리
+	private Long version;
+	
 	// 객체 생성 시 시간을 자동으로 추가
 	@PrePersist // DB에 저장되기 전 동작을 정의
 	public void prePersist() {
