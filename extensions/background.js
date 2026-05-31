@@ -1,6 +1,31 @@
-const SERVER_URL = "http://168.107.12.18:8080"; // 운영 서버
+// const SERVER_URL = "http://168.107.12.18:8080"; // 운영 서버
+const SERVER_URL = "https://api.dosic-ghostmessage.xyz";
 // const SERVER_URL = "http://localhost:8080"; // 로컬 서버
 const API_BASE_URL = `${SERVER_URL}/api/messages`;
+
+// 아이콘 클릭 시 설정 페이지 열기
+chrome.action.onClicked.addListener(() => {
+    chrome.runtime.openOptionsPage();
+});
+
+// 고유 ID 확인 및 등록 함수
+function registerUserIfNeeded() {
+    chrome.storage.local.get(['userId'], (result) => {
+        if (!result.userId) {
+            fetch(`${SERVER_URL}/api/users/register`, { method: "POST" })
+                .then(res => res.json())
+                .then(user => {
+                    chrome.storage.local.set({ 
+                        userId: user.uuid,
+                        securityCode: user.securityCode 
+                    }, () => {
+                        console.log("새 사용자 등록 완료:", user.uuid);
+                    });
+                })
+                .catch(err => console.error("사용자 등록 실패 (서버가 꺼져있을 수 있음):", err));
+        }
+    });
+}
 
 // 1. 익스텐션 설치 시 우클릭 메뉴 생성
 chrome.runtime.onInstalled.addListener(() => {
@@ -10,19 +35,7 @@ chrome.runtime.onInstalled.addListener(() => {
         contexts: ["link"] // 링크 위에서 우클릭했을 때만 나타남
     });
 
-    // 고유 ID 확인 및 등록
-    chrome.storage.local.get(['userId'], (result) => {
-        if (!result.userId) {
-            fetch(`${SERVER_URL}/api/users/register`, { method: "POST" })
-                .then(res => res.json())
-                .then(user => {
-                    chrome.storage.local.set({ userId: user.uuid }, () => {
-                        console.log("새 사용자 등록 완료:", user.uuid);
-                    });
-                })
-                .catch(err => console.error("사용자 등록 실패:", err));
-        }
-    });
+    registerUserIfNeeded();
 });
 
 // 2. 메뉴 클릭 이벤트 처리
@@ -39,6 +52,9 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 
 // 3. 메시지 조회 및 저장 처리 (기존 fetchMessages 로직 포함)
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    // 모든 요청 시 ID가 없으면 등록 시도
+    registerUserIfNeeded();
+
     if (request.action === "fetchMessages") {
         fetch(`${API_BASE_URL}?pageUrl=${encodeURIComponent(request.pageUrl)}&anchorKey=${encodeURIComponent(request.anchorKey)}`)
             .then(res => res.json())
@@ -48,44 +64,53 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 
     if (request.action === "saveMessage") {
-        fetch(API_BASE_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(request.data)
-        })
-        .then(async res => {
-            const data = await res.json();
-            if (res.ok) return { success: true, data };
-            return { success: false, error: data.message || "기록에 실패했습니다." };
-        })
-        .then(result => sendResponse(result))
-        .catch(err => sendResponse({ success: false, error: err.message }));
+        chrome.storage.local.get(['securityCode'], (res) => {
+            const securityCode = res.securityCode || "";
+            fetch(`${API_BASE_URL}?securityCode=${securityCode}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(request.data)
+            })
+            .then(async res => {
+                const data = await res.json();
+                if (res.ok) return { success: true, data };
+                return { success: false, error: data.message || "Failed to post (daily limit reached)." };
+            })
+            .then(result => sendResponse(result))
+            .catch(err => sendResponse({ success: false, error: err.message }));
+        });
         return true;
     }
 
     if (request.action === "voteMessage") {
-        fetch(`${API_BASE_URL}/${request.messageId}/vote?type=${request.type}&userId=${request.userId}`, {
-            method: "POST"
-        })
-        .then(async res => {
-            const data = await res.json();
-            if (res.ok) return { success: true, data };
-            return { success: false, error: data.message || "투표에 실패했습니다." };
-        })
-        .then(result => sendResponse(result))
-        .catch(err => sendResponse({ success: false, error: err.message }));
+        chrome.storage.local.get(['securityCode'], (res) => {
+            const securityCode = res.securityCode || "";
+            fetch(`${API_BASE_URL}/${request.messageId}/vote?type=${request.type}&userId=${request.userId}&securityCode=${securityCode}`, {
+                method: "POST"
+            })
+            .then(async res => {
+                const data = await res.json();
+                if (res.ok) return { success: true, data };
+                return { success: false, error: data.message || "Failed to vote (daily limit reached)." };
+            })
+            .then(result => sendResponse(result))
+            .catch(err => sendResponse({ success: false, error: err.message }));
+        });
         return true;
     }
 
     if (request.action === "deleteMessage") {
-        fetch(`${API_BASE_URL}/${request.messageId}?authorId=${request.authorId}`, {
-            method: "DELETE"
-        })
-        .then(res => {
-            if (res.ok) sendResponse({ success: true });
-            else sendResponse({ success: false, error: "No permission to delete or server error." });
-        })
-        .catch(err => sendResponse({ success: false, error: err.message }));
+        chrome.storage.local.get(['securityCode'], (res) => {
+            const securityCode = res.securityCode || "";
+            fetch(`${API_BASE_URL}/${request.messageId}?authorId=${request.authorId}&securityCode=${securityCode}`, {
+                method: "DELETE"
+            })
+            .then(res => {
+                if (res.ok) sendResponse({ success: true });
+                else sendResponse({ success: false, error: "No permission to delete or server error." });
+            })
+            .catch(err => sendResponse({ success: false, error: err.message }));
+        });
         return true;
     }
 

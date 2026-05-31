@@ -19,6 +19,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update # 자바 코드를 바탕으로 테이블을 자동 생성/수정함
+    defer-datasource-initialization: true
     show-sql: true # 실행되는 SQL문을 콘솔창에 보여줌
     properties:
       hibernate:

@@ -78,6 +78,11 @@ function applyHighlights() {
     });
 }
 
+// 디바운스된 하이라이트 적용 함수 (0.2초 대기)
+const debouncedApplyHighlights = debounce(() => {
+    applyHighlights();
+}, 200);
+
 /**
  * DOM 변화를 감지하여 동적으로 추가된 링크 처리
  */
@@ -85,7 +90,8 @@ function startObserving() {
     if (observer) observer.disconnect();
 
     observer = new MutationObserver((mutations) => {
-        applyHighlights();
+        // 직접 applyHighlights를 호출하는 대신 디바운스된 버전 호출
+        debouncedApplyHighlights();
     });
 
     observer.observe(document.body, {

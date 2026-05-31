@@ -41,3 +41,31 @@ function getUniqueSelector(el) {
     }
     return path;
 }
+
+/**
+ * XSS 방지를 위한 HTML 이스케이프 처리
+ */
+function escapeHtml(text) {
+    if (!text) return "";
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
+/**
+ * 성능 최적화를 위한 Debounce 함수
+ * @param {Function} func 실행할 함수
+ * @param {number} wait 대기 시간 (ms)
+ */
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}

@@ -2,7 +2,7 @@ package com.ghostMessage.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity // db 테이블과 매핑되는 클래스(ORM, Object Relational Mapping)
@@ -39,11 +39,11 @@ public class Message {
 	private int upVoteScore; // 추천 수
 	private int downVoteScore; // 비추천 수
 	
-	private LocalDateTime createdAt; // 생성일자
+	private Instant createdAt; // 생성일자
 	
 	@PrePersist // 엔티티가 db에 저장되기 전에 실행되는 메서드 
     public void prePersist() {
-        this.createdAt = LocalDateTime.now(); // 현재 시간 저장
+        this.createdAt = Instant.now(); // 현재 시간 저장
         this.upVoteScore = 0; // 초기 점수는 0점
         this.downVoteScore = 0; 
     }

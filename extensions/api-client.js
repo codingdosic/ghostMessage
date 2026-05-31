@@ -27,7 +27,7 @@ function confirmDelete(messageId) {
                         container.innerHTML = generateMessagesHtml(filtered);
                         bindTooltipEvents(container, filtered);
                     }
-                    updateHUD(); 
+                    updateHUD('online'); 
                     showToast("Message deleted.", "success");
                 }
             } else {
@@ -60,7 +60,7 @@ function castVote(messageId, type) {
                         container.innerHTML = generateMessagesHtml(filtered);
                         bindTooltipEvents(container, filtered);
                     }
-                    updateHUD(); 
+                    updateHUD('online'); 
                     showToast("Vote recorded.", "success");
                 }
             }

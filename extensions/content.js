@@ -10,26 +10,77 @@ function init() {
     if (isInitializing) return;
     isInitializing = true;
 
+    // HUD 즉시 생성 (연결 중 상태로 시작)
+    createHUD();
+    updateHUD('connecting');
+
     chrome.storage.local.get(['userId'], (result) => {
         MY_ID = result.userId;
-        if (!MY_ID) return;
+        
+        // ID가 없으면 등록될 때까지 잠시 대기 후 재시도 (서버 기동 초기 단계 고려)
+        if (!MY_ID) {
+            console.log("[GhostMessage] User ID not found, retrying in 3s...");
+            setTimeout(() => {
+                isInitializing = false;
+                init();
+            }, 3000);
+            return;
+        }
+
+        syncWithServer();
+        startHeartbeat(); // 실시간 상태 감시 시작
+    });
+}
+
+/**
+ * 주기적으로 서버 상태를 체크하는 Heartbeat (30초 주기)
+ */
+function startHeartbeat() {
+    if (window.ghostHeartbeatInterval) clearInterval(window.ghostHeartbeatInterval);
+    
+    window.ghostHeartbeatInterval = setInterval(() => {
+        // 이미 연결 중(재시도 중)인 상태면 중복 체크 방지
+        const statusEl = document.getElementById('hud-status');
+        if (statusEl && statusEl.classList.contains('connecting')) return;
 
         const pageUrl = normalizeUrl(window.location.href);
         fetchAllMessages(pageUrl, (response) => {
-            if (response && response.success && response.data) {
-                messageMap.clear();
-                response.data.forEach(msg => {
-                    const key = normalizeUrl(msg.anchorKey);
-                    if (!messageMap.has(key)) messageMap.set(key, []);
-                    messageMap.get(key).push(msg);
-                });
-                
-                applyHighlights();
-                startObserving();
-                createHUD();
+            if (!response || !response.success) {
+                console.log("[GhostMessage] Heartbeat failed, switching to connecting status...");
+                updateHUD('connecting');
+                syncWithServer(); // 재연결 프로세스 시작
             }
-            isInitializing = false;
         });
+    }, 30000); // 30초마다 체크
+}
+
+/**
+ * 서버와 데이터를 동기화하고 실패 시 재시도합니다.
+ */
+function syncWithServer() {
+    const pageUrl = normalizeUrl(window.location.href);
+    console.log("[GhostMessage] Syncing with server...");
+    
+    fetchAllMessages(pageUrl, (response) => {
+        if (response && response.success && response.data) {
+            messageMap.clear();
+            response.data.forEach(msg => {
+                const key = normalizeUrl(msg.anchorKey);
+                if (!messageMap.has(key)) messageMap.set(key, []);
+                messageMap.get(key).push(msg);
+            });
+            
+            applyHighlights();
+            startObserving();
+            updateHUD('online');
+            startHeartbeat(); // 연결 성공 시 하트비트 확실히 재시작
+            isInitializing = false;
+            console.log("[GhostMessage] Sync complete.");
+        } else {
+            console.log("[GhostMessage] Sync failed, retrying in 10s...");
+            updateHUD('connecting');
+            setTimeout(syncWithServer, 10000); // 10초 후 재시도
+        }
     });
 }
 
@@ -131,7 +182,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     if (!messageMap.has(anchorKey)) messageMap.set(anchorKey, []);
                     messageMap.get(anchorKey).push(response.data);
                     applyHighlights(); 
-                    updateHUD(); 
+                    updateHUD('online'); 
                     showToast("Message posted successfully!", "success");
                 } else {
                     showToast("Failed to post: " + response.error, "error");

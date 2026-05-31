@@ -1,6 +1,6 @@
 package com.ghostMessage.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import lombok.AllArgsConstructor;
@@ -30,5 +30,5 @@ public class MessageResponseDTO {
 	private String type; // 메시지 타입
 	private int upVoteScore; // 추천 수
 	private int downVoteScore; // 비추천 수
-	private LocalDateTime createdAt; // 작성일자
+	private Instant createdAt; // 작성일자
 }

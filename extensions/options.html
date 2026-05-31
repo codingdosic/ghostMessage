@@ -8,6 +8,12 @@
             padding: 40px 20px; 
             font-family: 'Pretendard', sans-serif; 
             background-color: #f4f4f9;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        /* 다크모드 스타일 */
+        body.dark-mode {
+            background-color: #181825;
+            color: #cdd6f4;
         }
         .container {
             max-width: 500px;
@@ -16,18 +22,168 @@
             padding: 30px;
             border-radius: 16px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: relative;
+            transition: background-color 0.3s;
+        }
+        body.dark-mode .container {
+            background: #1e1e2e;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
         }
         h2 { text-align: center; color: #333; margin-top: 0; }
+        body.dark-mode h2 { color: #cdd6f4; }
         .section { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        body.dark-mode .section { border-bottom-color: #313244; }
+        .section:last-child { border-bottom: none; }
+    <style>
+        body { 
+            padding: 40px 20px; 
+            font-family: 'Pretendard', sans-serif; 
+            background-color: #f4f4f9;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        /* 다크모드 스타일 */
+        body.dark-mode {
+            background-color: #181825;
+            color: #cdd6f4;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: relative;
+            transition: background-color 0.3s;
+        }
+        body.dark-mode .container {
+            background: #1e1e2e;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        h2 { text-align: center; color: #333; margin-top: 0; }
+        body.dark-mode h2 { color: #cdd6f4; }
+        .section { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        body.dark-mode .section { border-bottom-color: #313244; }
         .section:last-child { border-bottom: none; }
         label { display: block; margin-bottom: 12px; font-weight: bold; color: #444; }
-        .reset-btn { font-size: 11px; margin-left: 10px; cursor: pointer; padding: 2px 6px; background: #eee; border: none; border-radius: 4px; }
+        body.dark-mode label { color: #cdd6f4; }
+        
+        .reset-btn { font-size: 11px; margin-left: 10px; cursor: pointer; padding: 2px 6px; background: #eee; border: 1px solid #ddd; border-radius: 4px; transition: all 0.2s; }
+        body.dark-mode .reset-btn { background: #313244; color: #cdd6f4; border-color: #45475a; }
+        body.dark-mode .reset-btn:hover { background: #45475a; border-color: #6200ee; }
+
         #save { width: 100%; padding: 12px; font-weight: bold; cursor: pointer; background: #6200ee; color: white; border: none; border-radius: 8px; }
         #save:hover { background: #7c4dff; }
+        
+        /* 다크모드 토글 버튼 */
+        #themeToggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        #themeToggle:hover { background: rgba(0,0,0,0.05); }
+        body.dark-mode #themeToggle:hover { background: rgba(255,255,255,0.1); }
+
+        /* 입력 폼 다크모드 대응 */
+        body.dark-mode select, body.dark-mode input[type="text"] {
+            background: #313244;
+            color: #ffffff;
+            border-color: #45475a;
+        }
+        body.dark-mode #myMessageList { background: #181825 !important; border-color: #313244 !important; }
+        body.dark-mode #previewContainer { background: #181825 !important; border-color: #313244 !important; }
+        body.dark-mode #previewContainer p { color: #a6adc8 !important; }
+        body.dark-mode #previewLink { color: #ffffff !important; }
+
+        body.dark-mode .message-item { border-bottom-color: #313244 !important; color: #cdd6f4 !important; }
+        
+        body.dark-mode #currentUuid, 
+        body.dark-mode #currentSecurityCodeDisplay { 
+            background: #181825; 
+            color: #ffffff; 
+            border-color: #45475a; 
+        }
+
+        /* 버튼 기본 스타일 (인라인 대체) */
+        .btn-action {
+            background: #fff;
+            color: #6200ee;
+            border: 1px solid #6200ee;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 6px;
+        }
+        .btn-action:hover {
+            background: #6200ee;
+            color: #fff;
+        }
+
+        body.dark-mode .btn-action {
+            background: #313244;
+            color: #ffffff;
+            border-color: #6200ee;
+        }
+        body.dark-mode .btn-action:hover {
+            background: #6200ee;
+            color: #ffffff;
+        }
+
+        body.dark-mode .section[style*="background: #fdfdff"] {
+            background: #181825 !important;
+            border-color: #313244 !important;
+        }
+        body.dark-mode .section[style*="background: #fdfdff"] p {
+            color: #a6adc8 !important;
+        }
+        body.dark-mode .section[style*="background: #fdfdff"] a {
+            background: #313244 !important;
+            color: #ffffff !important;
+            border-color: #6200ee !important;
+        }
+        body.dark-mode .section[style*="background: #fdfdff"] a:hover {
+            background: #6200ee !important;
+        }
+
+        /* 메시지 리스트 스크롤바 */
+        #myMessageList::-webkit-scrollbar { width: 5px; }
+        #myMessageList::-webkit-scrollbar-track { background: transparent; }
+        #myMessageList::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.1); border-radius: 10px; }
+        body.dark-mode #myMessageList::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); }
+        body.dark-mode #myMessageList::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+
+        /* 메시지 아이템 및 배지 */
+        .message-item { border-bottom: 1px solid #eee; padding: 12px 0; color: #333; cursor: pointer; transition: background 0.2s; }
+        body.dark-mode .message-item { border-bottom-color: #313244; color: #cdd6f4; }
+        
+        .type-badge {
+            font-size: 11px;
+            font-weight: bold;
+            color: #6200ee;
+            background: #f0e6ff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        body.dark-mode .type-badge {
+            color: #cba6f7;
+            background: rgba(203, 166, 247, 0.15);
+            border: 1px solid rgba(203, 166, 247, 0.3);
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <button id="themeToggle" title="Toggle Dark Mode">🌙</button>
         <h2>👻 Ghost Message Settings</h2>
         <div class="section">
             <label>Message Sort Order</label>
@@ -100,8 +256,59 @@
             <p style="text-align: center; color: #aaa; font-size: 13px; margin-top: 60px;">Your messages will appear here.</p>
         </div>
     </div>
+        <!-- 현재 계정 정보 섹션 -->
+    <div class="section">
+        <label>🆔 My Account Info</label>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <span style="font-size: 11px; color: #888;">My UUID</span>
+                <input type="text" id="currentUuid" readonly 
+                       style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ddd; background: #f9f9f9; font-size: 12px; color: #555; outline: none;">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <span style="font-size: 11px; color: #888;">Security Code</span>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="currentSecurityCodeDisplay" readonly value="********"
+                           style="flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #ddd; background: #f9f9f9; font-size: 12px; color: #555; outline: none; text-align: center; letter-spacing: 2px;">
+                    <button id="copyCodeBtn" class="btn-action" style="padding: 0 12px; font-size: 11px;">Copy</button>
+                    <!-- 실제 값 저장용 숨겨진 필드 -->
+                    <input type="hidden" id="currentSecurityCode">
+                </div>
+            </div>
+            <p style="font-size: 11px; color: #ff5252; margin: 4px 0 0 0;">⚠️ Keep this code safe! You need it to recover your account.</p>
+        </div>
+    </div>
+    
+    <!-- 계정 복구 섹션 -->
+    <div class="section">
+        <label>🔄 Recover Account</label>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <input type="text" id="recoverUuid" placeholder="Enter previous UUID" 
+                   style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; outline: none; font-size: 13px;">
+            <input type="text" id="recoverSecurityCode" placeholder="Enter Security Code" 
+                   style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; outline: none; font-size: 13px;">
+            <button id="recoverBtn" class="btn-action" style="width: 100%; padding: 10px; font-weight: bold;">Recover & Sync</button>
+        </div>
+    </div>
+    
+    <!-- 후원 섹션 추가 -->
+    <div class="section" style="text-align: center; border-bottom: none; margin-top: 40px; background: #fdfdff; padding: 20px; border-radius: 12px; border: 1px dashed #e0e0e0;">
+        <p style="font-size: 12px; color: #888; margin-bottom: 15px; line-height: 1.5;">
+            ghostMessage is a passion project built for the community.<br>
+            If it's been helpful, feel free to support its maintenance.
+        </p>
+        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <a href="https://ko-fi.com/baedosic2" target="_blank" class="btn-action" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; text-decoration: none; font-size: 13px; font-weight: bold;">
+                ☕ Support on Ko-fi
+            </a>
+            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=baedosic2@gmail.com&su=[ghostMessage] Feature Suggestion / Bug Report" target="_blank" class="btn-action" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; text-decoration: none; font-size: 13px; font-weight: bold;">
+                📧 Contact Developer
+            </a>
+        </div>
+    </div>
 
     <button id="save" style="margin-top: 10px; padding: 10px 20px; font-weight: bold; cursor: pointer;">Save Settings</button>
+    <script src="utils.js"></script>
     <script src="options.js"></script>
 </body>
 </html>

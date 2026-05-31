@@ -77,6 +77,30 @@
 .hud-item { display: flex; align-items: center; gap: 4px; }
 .hud-divider { width: 1px; height: 10px; background: rgba(255, 255, 255, 0.2); }
 
+/* HUD 연결 상태 애니메이션 */
+@keyframes hud-pulse {
+    0% { opacity: 0.4; transform: scale(0.9); }
+    50% { opacity: 1; transform: scale(1.1); }
+    100% { opacity: 0.4; transform: scale(0.9); }
+}
+
+.hud-status-icon {
+    font-size: 12px;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.hud-status-icon.connecting {
+    color: #f9e2af; /* 밝은 노란색 */
+    animation: hud-pulse 1.5s infinite ease-in-out;
+    filter: drop-shadow(0 0 5px rgba(249, 226, 175, 0.8));
+}
+
+.hud-status-icon.online {
+    color: #40ff00; /* 더 선명한 녹색 */
+    filter: drop-shadow(0 0 6px rgba(64, 255, 0, 0.9));
+}
+
 /* 커스텀 모달 오버레이 */
 .ghost-modal-overlay {
     position: fixed;

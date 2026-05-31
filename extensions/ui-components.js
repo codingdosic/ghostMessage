@@ -110,7 +110,7 @@ function generateMessagesHtml(messageList) {
                         ${msg.type || 'Normal'}
                     </span>
                 </div>
-                <div style="margin: 5px 0; font-size: 13px; padding-right: 65px; word-break: break-all;">${msg.content}</div>
+                <div style="margin: 5px 0; font-size: 13px; padding-right: 65px; word-break: break-all;">${escapeHtml(msg.content)}</div>
                 <div style="font-size: 11px; display: flex; align-items: center; gap: 8px; margin-top: 5px;">
                     <div style="display: flex; gap: 6px;">
                         <button class="vote-up-btn" data-id="${msg.id}" style="background:none; border:none; color:inherit; cursor:pointer; padding:0; font-size: 11px;">
@@ -195,28 +195,34 @@ function createHUD() {
     const hud = document.createElement('div');
     hud.id = 'ghost-hud';
     hud.innerHTML = `
-        <div class="hud-item" title="Page Messages">📍 <span id="hud-total-msg">0</span></div>
+        <div class="hud-item" title="Connection Status"><span id="hud-status" class="hud-status-icon connecting">📡</span></div>
         <div class="hud-divider"></div>
-        <div class="hud-item" title="Messages Left Today">✍️ <span id="hud-remain-msg">10</span></div>
+        <div class="hud-item" title="Page Messages">📍 <span id="hud-total-msg">-</span></div>
         <div class="hud-divider"></div>
-        <div class="hud-item" title="Votes Left Today">👍 <span id="hud-remain-vote">20</span></div>
+        <div class="hud-item" title="Messages Left Today">✍️ <span id="hud-remain-msg">-</span></div>
         <div class="hud-divider"></div>
-        <div class="hud-item" title="Time until Reset (UTC 00:00)">⏳ <span id="hud-timer">00:00</span></div>
+        <div class="hud-item" title="Votes Left Today">👍 <span id="hud-remain-vote">-</span></div>
+        <div class="hud-divider"></div>
+        <div class="hud-item" title="Time until Reset (UTC 00:00)">⏳ <span id="hud-timer">--:--</span></div>
     `;
     document.body.appendChild(hud);
-    updateHUD();
 }
 
-function updateHUD() {
+function updateHUD(status = 'connecting') {
     const hud = document.getElementById('ghost-hud');
     if (!hud) return;
+
+    const statusEl = document.getElementById('hud-status');
+    if (statusEl) {
+        statusEl.className = `hud-status-icon ${status}`;
+    }
 
     let total = 0;
     messageMap.forEach(msgs => total += msgs.length);
     const totalEl = document.getElementById('hud-total-msg');
-    if (totalEl) totalEl.innerText = total;
+    if (totalEl) totalEl.innerText = status === 'online' ? total : '-';
 
-    if (MY_ID) {
+    if (MY_ID && status === 'online') {
         fetchUserInfo(MY_ID, (response) => {
             if (response && response.success && response.data) {
                 const user = response.data;
@@ -226,16 +232,22 @@ function updateHUD() {
                 if (voteEl) voteEl.innerText = Math.max(0, 20 - user.dailyVoteCount);
             }
         });
+    } else {
+        const msgEl = document.getElementById('hud-remain-msg');
+        const voteEl = document.getElementById('hud-remain-vote');
+        if (msgEl) msgEl.innerText = '-';
+        if (voteEl) voteEl.innerText = '-';
     }
 
     const updateTimer = () => {
+        if (status !== 'online') return;
         const now = new Date();
         
         // UTC 기준 날짜가 바뀌었는지 체크
         const currentUtcDay = now.getUTCDate();
         if (currentUtcDay !== lastUpdateDay) {
             lastUpdateDay = currentUtcDay;
-            updateHUD(); // 정보 갱신
+            updateHUD('online'); // 정보 갱신
             return;
         }
 
@@ -258,8 +270,17 @@ function updateHUD() {
         }
     };
     
-    updateTimer();
-    if (!window.ghostHudInterval) {
-        window.ghostHudInterval = setInterval(updateTimer, 1000);
+    if (status === 'online') {
+        updateTimer();
+        if (!window.ghostHudInterval) {
+            window.ghostHudInterval = setInterval(updateTimer, 1000);
+        }
+    } else {
+        if (window.ghostHudInterval) {
+            clearInterval(window.ghostHudInterval);
+            window.ghostHudInterval = null;
+        }
+        const timerEl = document.getElementById('hud-timer');
+        if (timerEl) timerEl.innerText = '--:--';
     }
 }

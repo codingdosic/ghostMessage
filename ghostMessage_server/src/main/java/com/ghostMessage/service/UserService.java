@@ -34,4 +34,24 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found."));
     }
     
+    public User recoverUser(UUID uuid, String securityCode) {
+        User user = userRepository.findById(uuid)
+                .orElseThrow(() -> new RuntimeException("User not found."));
+        
+        if (!user.getSecurityCode().equals(securityCode)) {
+            throw new RuntimeException("Invalid security code.");
+        }
+        
+        return user;
+    }
+    
+    public void validateUser(UUID uuid, String securityCode) {
+        User user = userRepository.findById(uuid)
+                .orElseThrow(() -> new RuntimeException("User not found."));
+        
+        if (securityCode == null || !user.getSecurityCode().equals(securityCode)) {
+            throw new RuntimeException("Unauthorized: Invalid security code.");
+        }
+    }
+    
     }

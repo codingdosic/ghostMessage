@@ -1,5 +1,6 @@
 // 초기 기본값 정의
 const DEFAULTS = {
+    darkMode: false,
     sortOrder: 'SCORE', 
     enableHighlight: true, 
     highlightColor: '#6200ee',
@@ -10,6 +11,7 @@ const DEFAULTS = {
 };
 
 // 설정값 엘리먼트 참조
+const themeToggleBtn = document.getElementById('themeToggle');
 const sortOrderEl = document.getElementById('sortOrder');
 const enableHighlightEl = document.getElementById('enableHighlight');
 const highlightColorEl = document.getElementById('highlightColor');
@@ -31,6 +33,11 @@ const saveBtn = document.getElementById('save');
 
 // 1. 설정 불러오기
 chrome.storage.sync.get(DEFAULTS, (items) => {
+    if (items.darkMode) {
+        document.body.classList.add('dark-mode');
+        themeToggleBtn.innerText = '☀️';
+    }
+    
     sortOrderEl.value = items.sortOrder;
     enableHighlightEl.checked = items.enableHighlight;
     highlightColorEl.value = items.highlightColor;
@@ -42,6 +49,15 @@ chrome.storage.sync.get(DEFAULTS, (items) => {
     
     updatePreview(); // 불러온 값으로 미리보기 업데이트
 });
+
+// 다크모드 토글 이벤트
+themeToggleBtn.onclick = () => {
+    const isDark = document.body.classList.toggle('dark-mode');
+    themeToggleBtn.innerText = isDark ? '☀️' : '🌙';
+    
+    // 즉시 저장 (다크모드는 별도로 저장)
+    chrome.storage.sync.set({ darkMode: isDark });
+};
 
 // 2. 실시간 미리보기 업데이트 함수
 function updatePreview() {
@@ -104,6 +120,7 @@ resetTooltipBtn.onclick = () => {
 // 4. 설정 저장하기
 saveBtn.onclick = () => {
     chrome.storage.sync.set({
+        darkMode: document.body.classList.contains('dark-mode'),
         sortOrder: sortOrderEl.value,
         enableHighlight: enableHighlightEl.checked,
         highlightColor: highlightColorEl.value,
@@ -125,8 +142,9 @@ const myMessageListEl = document.getElementById('myMessageList');
 
 let myMessagesData = []; // 백엔드에서 가져온 원본 데이터
 
-const SERVER_URL = "http://168.107.12.18:8080"; // 운영 서버
-//onst SERVER_URL = "http://localhost:8080"; // 로컬 서버
+// const SERVER_URL = "http://168.107.12.18:8080"; // 운영 서버
+const SERVER_URL = "https://api.dosic-ghostmessage.xyz";
+// const SERVER_URL = "http://localhost:8080"; // 로컬 서버
 
 // [추가] 내 메시지 목록 불러오기
 function loadMyMessages() {
@@ -179,14 +197,14 @@ function renderMyMessages() {
     }
 
     myMessageListEl.innerHTML = filtered.map(msg => `
-        <div class="message-item" data-url="${msg.pageUrl}" style="border-bottom: 1px solid #eee; padding: 12px 0; color: #333; cursor: pointer; transition: background 0.2s;">
+        <div class="message-item" data-url="${msg.pageUrl}">
             <div style="display: flex; justify-content: space-between; margin-bottom: 6px; pointer-events: none;">
-                <span style="font-size: 11px; font-weight: bold; color: #6200ee; background: #f0e6ff; padding: 2px 6px; border-radius: 4px;">
+                <span class="type-badge">
                     ${msg.type || 'Normal'}
                 </span>
                 <span style="font-size: 11px; color: #999;">${new Date(msg.createdAt).toLocaleString()}</span>
             </div>
-            <div style="font-size: 14px; margin-bottom: 8px; line-height: 1.4; pointer-events: none;">${msg.content}</div>
+            <div style="font-size: 14px; margin-bottom: 8px; line-height: 1.4; pointer-events: none;">${escapeHtml(msg.content)}</div>
             <div style="display: flex; align-items: center; gap: 12px; font-size: 12px; color: #666; pointer-events: none;">
                 <span>👍 ${msg.upVoteScore}</span>
                 <span>👎 ${msg.downVoteScore}</span>
@@ -197,6 +215,73 @@ function renderMyMessages() {
         </div>
     `).join('');
 }
+// 1. 현재 정보 불러오기
+function loadAccountInfo() {
+    chrome.storage.local.get(['userId'], (result) => {
+        const userId = result.userId;
+        if (!userId) return;
+
+        fetch(`${SERVER_URL}/api/users/${userId}`)
+            .then(res => res.json())
+            .then(user => {
+                document.getElementById('currentUuid').value = user.uuid;
+                document.getElementById('currentSecurityCode').value = user.securityCode;
+            })
+            .catch(err => console.error("Failed to load account info:", err));
+    });
+}
+
+// 보안 코드 복사 버튼 로직
+document.getElementById('copyCodeBtn').addEventListener('click', () => {
+    const code = document.getElementById('currentSecurityCode').value;
+    if (!code) return;
+
+    navigator.clipboard.writeText(code).then(() => {
+        const btn = document.getElementById('copyCodeBtn');
+        const originalText = btn.innerText;
+        btn.innerText = "Copied!";
+        btn.style.background = "#6200ee";
+        btn.style.color = "#fff";
+        
+        setTimeout(() => {
+            btn.innerText = originalText;
+            btn.style.background = "#fff";
+            btn.style.color = "#6200ee";
+        }, 2000);
+    });
+});
+
+// 복구 버튼 로직
+document.getElementById('recoverBtn').onclick = () => {
+    const uuid = document.getElementById('recoverUuid').value.trim();
+    const code = document.getElementById('recoverSecurityCode').value.trim();
+
+    if (!uuid || !code) {
+        alert("Please enter both UUID and Security Code.");
+        return;
+    }
+
+    chrome.storage.local.get(['userId'], (result) => {
+        if (result.userId === uuid) {
+            alert("This is your current active account.");
+            return;
+        }
+
+        fetch(`${SERVER_URL}/api/users/recover?uuid=${uuid}&securityCode=${code}`)
+            .then(async res => {
+                if (res.ok) {
+                    const user = await res.json();
+                    chrome.storage.local.set({ userId: user.uuid }, () => {
+                        alert("Account recovered successfully! The page will reload.");
+                        location.reload();
+                    });
+                } else {
+                    const error = await res.text();
+                    alert("Recovery failed: " + error);
+                }
+            });
+    });
+};
 
 // 이벤트 리스너 등록
 searchContentEl.addEventListener('input', renderMyMessages);
@@ -210,10 +295,13 @@ myMessageListEl.addEventListener('click', (e) => {
     }
 });
 
-// 호버 시 배경색 변경 (CSS 없이 JS로 간단히 처리)
+// 호버 시 배경색 변경
 myMessageListEl.addEventListener('mouseover', (e) => {
     const item = e.target.closest('.message-item');
-    if (item) item.style.backgroundColor = '#f8f8f8';
+    if (item) {
+        const isDark = document.body.classList.contains('dark-mode');
+        item.style.backgroundColor = isDark ? '#2a2a3c' : '#f8f8f8';
+    }
 });
 myMessageListEl.addEventListener('mouseout', (e) => {
     const item = e.target.closest('.message-item');
@@ -222,3 +310,4 @@ myMessageListEl.addEventListener('mouseout', (e) => {
 
 // 초기 로드 실행
 loadMyMessages();
+loadAccountInfo();

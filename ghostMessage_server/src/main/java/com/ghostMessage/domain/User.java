@@ -2,8 +2,9 @@ package com.ghostMessage.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
+import java.security.SecureRandom;
 
 @Entity // DB 테이블과 매핑됨
 @Table(name = "users") // 테이블 이름을 user 로 함
@@ -16,15 +17,17 @@ public class User {
 	@Id // 기본키 지정
 	private UUID uuid; // 식별자
 	
+	private String securityCode;
+	
 	private String nickname; // 닉네임
 	
-	private LocalDateTime createdAt; // 생성일시
+	private Instant createdAt; // 생성일시
 	
 	private int dailyMessageCount; // 일일 메시지 제한
 	private int dailyVoteCount; // 일일 추천 제한
 	
-	private LocalDateTime lastMessageResetAt; // 메시지 제한 초기화 시점
-	private LocalDateTime lastVoteResetAt; // 추천 제한 초기화 시점
+	private Instant lastMessageResetAt; // 메시지 제한 초기화 시점
+	private Instant lastVoteResetAt; // 추천 제한 초기화 시점
 	
 	@Version // 낙관적 락을 위한 버전 관리
 	private Long version;
@@ -33,10 +36,28 @@ public class User {
 	@PrePersist // DB에 저장되기 전 동작을 정의
 	public void prePersist() {
 		
-		this.createdAt = LocalDateTime.now(); // 현재 시간 추가
+		this.createdAt = Instant.now(); // 현재 시간 추가
 		
 		if(this.uuid == null) {
 			this.uuid = UUID.randomUUID(); // 식별자 없을 경우 추가
 		}
+		
+		if(this.securityCode == null) {
+	        this.securityCode = generateCode(8);
+	    }
 	}
+	
+	private String generateCode(int length) {
+	    String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	    SecureRandom random = new SecureRandom();
+	    StringBuilder sb = new StringBuilder(length);
+	
+	    for (int i = 0; i < length; i++) {
+	    	int index = random.nextInt(characters.length());
+	    	sb.append(characters.charAt(index));
+	    }
+	    return sb.toString();
+	 }
 }
+
+

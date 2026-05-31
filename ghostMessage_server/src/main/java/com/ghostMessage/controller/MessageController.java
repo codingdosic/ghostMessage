@@ -18,24 +18,29 @@ import com.ghostMessage.domain.Message;
 import com.ghostMessage.dto.MessageRequestDTO;
 import com.ghostMessage.dto.MessageResponseDTO;
 import com.ghostMessage.service.MessageService;
+import com.ghostMessage.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 
 @RestController // 1. REST API용 컨트롤러임을 선언 -> http 요청을 처리하고, json 응답을 반환
 @RequestMapping("/api/messages") // 2. 공통 주소 설정
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") // 3. 브라우저 익스텐션에서 접근 가능하도록 허용(CORS 허용, 브라우저는 다른 도메인 요청을 차단하기 때문)
+@CrossOrigin(origins = "chrome-extension://pmenhmekdcfeglgkicljlogcacogdalk") // 3. 브라우저 익스텐션에서 접근 가능하도록 허용(CORS 허용, 브라우저는 다른 도메인 요청을 차단하기 때문)
 public class MessageController {
 	
 	// 비즈니스 로직을 처리할 서비스 객체
     private final MessageService messageService;
+    private final UserService userService;
     
     // ----------------------------- POST ----------------------------- 
     
     // 메시지 남기기
     @PostMapping // post 요청
-    public ResponseEntity<MessageResponseDTO> create(@RequestBody MessageRequestDTO dto) {
-    	
+    public ResponseEntity<MessageResponseDTO> create(
+    		@RequestBody MessageRequestDTO dto,
+    		@RequestParam String securityCode) {
+
+    	userService.validateUser(dto.getAuthorId(), securityCode);
         MessageResponseDTO saved = messageService.createMessage(dto);
         
         return ResponseEntity.ok(saved); 
@@ -46,8 +51,10 @@ public class MessageController {
     public ResponseEntity<MessageResponseDTO> vote(
     		@PathVariable(name = "id") Long id, // 투표할 메시지 id
     		@RequestParam(name = "type") String type, // 투표 타입(추천 / 비추천)
-    		@RequestParam(name = "userId") UUID userId) { // [추가] 누가 투표했는지 정보
+    		@RequestParam(name = "userId") UUID userId,
+    		@RequestParam String securityCode) { // [추가] 누가 투표했는지 정보
     	
+    	userService.validateUser(userId, securityCode);
     	MessageResponseDTO updated = messageService.vote(id, type, userId);
     	
     	return ResponseEntity.ok(updated);
@@ -91,8 +98,10 @@ public class MessageController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
     		@PathVariable(name = "id") Long id, // 투표할 메시지 id
-    		@RequestParam(name = "authorId") UUID authorId){
+    		@RequestParam(name = "authorId") UUID authorId,
+    		@RequestParam String securityCode){
     	
+    	userService.validateUser(authorId, securityCode);
     	messageService.deleteMessage(id, authorId);
     	
     	return ResponseEntity.noContent().build();
