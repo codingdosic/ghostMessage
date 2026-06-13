@@ -17,3 +17,13 @@ docs/
 # OS
 .DS_Store
 Thumbs.db
+
+# Data (Database files)
+data/
+data/**
+
+# Backup and Archive files
+*.sql
+*.tar.gz
+backup.sh
+

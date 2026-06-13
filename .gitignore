@@ -1,26 +1,38 @@
-# 환경 변수 및 보안 파일
-.env
-.env.*
+# --- GhostMessage Repository Root .gitignore ---
 
-# 데이터베이스 데이터 (영속성 데이터)
-**/data/postgres/
-**/data/redis/
+# Ignore everything at the root by default
+/*
 
-# 빌드 및 Gradle/IDE 파일
-.gradle/
+# Allow only these specific folders and files
+!/extensions/
+!/ghostMessage_server/
+!/.github/
+!/.gitignore
+!/README.md
+
+# --- Specific Ignore Rules for Allowed Folders ---
+
+# Backend specific (Already managed by ghostMessage_server/.gitignore but added here for safety)
 **/build/
 **/bin/
-**/.apt_generated/
-**/.apt_generated_tests/
-**/.settings/
-**/.project
-**/.classpath
-**/.factorypath
-.idea/
-.vscode/
+**/.gradle/
+**/data/
 
-# OS/기타
+# OS and IDE files
 .DS_Store
 Thumbs.db
 .metadata/
-# docs/  <-- 스토어 등록을 위해 docs 폴더는 git에 포함시키는 것으로 변경합니다.
+.settings/
+.project
+.classpath
+.factorypath
+
+# Archive and Documentation (User requested to exclude from GitHub)
+*.zip
+*.tar.gz
+docs/
+extension_image/
+plan.md
+research.md
+session.txt
+DockerFile

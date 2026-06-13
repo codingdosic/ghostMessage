@@ -18,7 +18,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update # 자바 코드를 바탕으로 테이블을 자동 생성/수정함
+      ddl-auto: validate # Flyway 도입 후에는 변경 내역을 validate만 수행
     defer-datasource-initialization: true
     show-sql: true # 실행되는 SQL문을 콘솔창에 보여줌
     properties:
@@ -28,4 +28,21 @@ spring:
 
   sql:
     init:
-      mode: always # data.sql을 항상 실행함
+      mode: never # Flyway 사용 시 data.sql은 비활성화
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true # 기존 DB가 있는 경우 필수
+    baseline-version: 0
+    locations: classpath:db/migration
+
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health, info, prometheus
+    endpoint:
+      prometheus:
+        enabled: true
+      health:
+        show-details: always

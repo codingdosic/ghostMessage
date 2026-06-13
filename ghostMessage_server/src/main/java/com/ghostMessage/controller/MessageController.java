@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 @RestController // 1. REST API용 컨트롤러임을 선언 -> http 요청을 처리하고, json 응답을 반환
 @RequestMapping("/api/messages") // 2. 공통 주소 설정
 @RequiredArgsConstructor
-@CrossOrigin(origins = "chrome-extension://eogkeipldeaeidaehgkjobegoabmfdcl") // 3. 브라우저 익스텐션에서 접근 가능하도록 허용(CORS 허용, 브라우저는 다른 도메인 요청을 차단하기 때문)
+@CrossOrigin(origins = "chrome-extension://pmenhmekdcfeglgkicljlogcacogdalk") // 3. 브라우저 익스텐션에서 접근 가능하도록 허용(CORS 허용, 브라우저는 다른 도메인 요청을 차단하기 때문)
 public class MessageController {
 	
 	// 비즈니스 로직을 처리할 서비스 객체

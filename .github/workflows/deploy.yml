@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "main", "master" ]
     paths:
-      - 'ghostMessage_server_r/**' # 백엔드 코드가 바뀔 때만 실행
+      - 'ghostMessage_server/**' # 백엔드 코드가 바뀔 때만 실행
 
 env:
   REGISTRY: ghcr.io
@@ -29,7 +29,7 @@ jobs:
           cache: gradle
 
       - name: Build with Gradle
-        working-directory: ./ghostMessage_server_r
+        working-directory: ./ghostMessage_server
         run: |
           chmod +x ./gradlew
           ./gradlew clean build -x test
@@ -44,8 +44,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./ghostMessage_server_r
-          file: ./ghostMessage_server_r/Dockerfile
+          context: ./ghostMessage_server
+          file: ./ghostMessage_server/Dockerfile
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
