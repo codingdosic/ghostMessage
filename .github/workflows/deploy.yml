@@ -69,10 +69,10 @@ jobs:
             echo "Pulling latest image for codingdosic/ghost-message-server..."
             
             # 2. 최신 이미지 가져오기 (실패 시 여기서 멈춤)
-            docker-compose pull app
+            docker compose pull app
             
             # 3. 컨테이너 재실행
-            docker-compose up -d app
+            docker compose up -d app
             
             # 4. 오래된 이미지 정리
             docker image prune -f
