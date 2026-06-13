@@ -9,6 +9,7 @@
 !/.github/
 !/.gitignore
 !/README.md
+!/ghostMessage_server/Dockerfile
 
 # --- Specific Ignore Rules for Allowed Folders ---
 
