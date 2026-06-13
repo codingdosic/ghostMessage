@@ -28,7 +28,7 @@ public class GhostMessageApplication {
 
 	public static void main(String[] args) {
 		
-		// 스프링 어플리케이션 시작 
+		// 스프링 어플리케이션 시작 (Test trigger)
 		SpringApplication.run(GhostMessageApplication.class, args);
 	}
 
