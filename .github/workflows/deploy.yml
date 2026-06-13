@@ -4,11 +4,13 @@ on:
   push:
     branches: [ "main", "master" ]
     paths:
-      - 'ghostMessage_server/**' # 백엔드 코드가 바뀔 때만 실행
+      - 'ghostMessage_server/**'
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository_owner }}/ghost-message-server
+  # 2026년 6월 Node.js 24 강제 대응 설정
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build-and-push:
@@ -21,7 +23,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21 # 2026 표준 Java 버전
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
