@@ -62,10 +62,19 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            set -e # 에러 발생 시 즉시 중단하여 원인 파악 용이
             cd ~/app/ghostMessage_server
-            # 1. 최신 이미지 가져오기
+            
+            # 1. 이미지 주소 확인 (디버깅용)
+            echo "Pulling latest image for codingdosic/ghost-message-server..."
+            
+            # 2. 최신 이미지 가져오기 (실패 시 여기서 멈춤)
             docker-compose pull app
-            # 2. 컨테이너 재실행 (데이터 보존)
+            
+            # 3. 컨테이너 재실행
             docker-compose up -d app
-            # 3. 오래된 이미지 정리
+            
+            # 4. 오래된 이미지 정리
             docker image prune -f
+            
+            echo "Deployment successful!"
