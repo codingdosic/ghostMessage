@@ -64,10 +64,34 @@
     gap: 10px;
     align-items: center;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    pointer-events: none; /* 사이트 이용 방해 금지 */
+    pointer-events: auto; /* 클릭 상호작용 허용 */
+    cursor: pointer;
     user-select: none;
-    transition: opacity 0.3s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     opacity: 0.9;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 600px;
+}
+
+#ghost-hud.collapsed {
+    max-width: 38px;
+    padding: 5px 10px;
+    opacity: 0.7;
+}
+
+#ghost-hud.collapsed:hover {
+    opacity: 1;
+}
+
+#ghost-hud.dragging {
+    transition: none !important;
+    opacity: 1;
+}
+
+#ghost-hud.collapsed .hud-divider,
+#ghost-hud.collapsed .hud-item:not(:first-child) {
+    display: none;
 }
 
 #ghost-hud:hover {

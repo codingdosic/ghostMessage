@@ -1,0 +1,26 @@
+# 환경 변수 및 보안 파일
+.env
+.env.*
+
+# 데이터베이스 데이터 (영속성 데이터)
+**/data/postgres/
+**/data/redis/
+
+# 빌드 및 Gradle/IDE 파일
+.gradle/
+**/build/
+**/bin/
+**/.apt_generated/
+**/.apt_generated_tests/
+**/.settings/
+**/.project
+**/.classpath
+**/.factorypath
+.idea/
+.vscode/
+
+# OS/기타
+.DS_Store
+Thumbs.db
+.metadata/
+# docs/  <-- 스토어 등록을 위해 docs 폴더는 git에 포함시키는 것으로 변경합니다.

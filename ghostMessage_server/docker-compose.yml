@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # 1. Spring Boot API Server
+  app:
+    build: .
+    container_name: ghost-app
+
+    ports:
+      - "8080:8080"
+
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/ghost_db
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+
+      # JVM Memory Limit
+      # [면접 대비 포인트] JAVA_OPTS:
+      # - -Xms(초기 힙 크기), -Xmx(최대 힙 크기)를 설정하여 JVM이 사용할 메모리 범위를 제한합니다.
+      # - 컨테이너의 mem_limit보다 작게 설정하여 OOM Killer에 의해 컨테이너가 강제 종료되는 것을 방지합니다.
+      - JAVA_OPTS=-Xms256m -Xmx384m
+
+    depends_on:
+      - db
+      - redis
+
+    restart: always
+
+    # [면접 대비 포인트] mem_limit:
+    # - 1GB RAM 서버 환경에서 각 컨테이너가 사용할 수 있는 물리 메모리의 최대치를 제한합니다.
+    # - 자원 경합을 방지하고 특정 서비스의 메모리 누수가 전체 시스템에 영향을 주지 않도록 격리합니다.
+    mem_limit: 512m
+
+  # 2. PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: ghost-db
+
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+
+    # [면접 대비 포인트] volumes:
+    # - 컨테이너는 휘발성(Ephemeral)이므로, 삭제 시 내부 데이터가 유실됩니다.
+    # - 호스트의 디렉토리와 바인딩하여 컨테이너가 재시작되거나 삭제되어도 데이터가 유지되도록(Persistence) 합니다.
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+
+    ports:
+      - "5432:5432"
+
+    restart: always
+
+    mem_limit: 256m
+
+  # 3. Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: ghost-redis
+
+    command: redis-server --appendonly yes --maxmemory 64mb --maxmemory-policy allkeys-lru
+
+    volumes:
+      - ./data/redis:/data
+
+    ports:
+      - "6379:6379"
+
+    restart: always
+
+    mem_limit: 128m
+  
+  pgadmin:
+    image: dpage/pgadmin4:8.8
+    container_name: ghost-pgadmin
+    
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+      
+    ports:
+      - "5050:80"
+     
+    restart: always

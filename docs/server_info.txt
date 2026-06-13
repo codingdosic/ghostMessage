@@ -1,0 +1,134 @@
+ubuntu@ghost-vnic:~$ docker ps -a
+
+CONTAINER ID   IMAGE                COMMAND                  CREATED        STATUS        PORTS                                         NAMES
+c14dff3e1523   app-app              "java -jar app.jar"      13 hours ago   Up 13 hours   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp   ghost-app
+2dedb370188d   postgres:15-alpine   "docker-entrypoint.s…"   13 hours ago   Up 13 hours   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp   ghost-db
+38a851b55538   redis:7-alpine       "docker-entrypoint.s…"   13 hours ago   Up 13 hours   0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp   ghost-redis
+
+ubuntu@ghost-vnic:~$ docker images
+                                                                                                    i Info →   U  In Use
+IMAGE                ID             DISK USAGE   CONTENT SIZE   EXTRA
+app-app:latest       5c01a0868ca8        386MB          129MB    U
+postgres:15-alpine   df7bca0066e6        392MB          110MB    U
+redis:7-alpine       6ab0b6e73817       57.8MB         16.8MB    U
+
+
+ubuntu@ghost-vnic:~/app$ docker compose config (개인정보는 문서 작성 시 사용 x)
+WARN[0000] /home/ubuntu/app/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+name: app
+services:
+  app:
+    build:
+      context: /home/ubuntu/app/ghostMessage
+      dockerfile: Dockerfile
+    container_name: ghost-app
+    depends_on:
+      db:
+        condition: service_started
+        required: true
+      redis:
+        condition: service_started
+        required: true
+    environment:
+      JAVA_OPTS: -Xms256m -Xmx384m
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/ghost_db
+      SPRING_DATASOURCE_USERNAME: ghost_user
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: "6379"
+    mem_limit: "536870912"
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 8080
+        published: "8080"
+        protocol: tcp
+    restart: always
+  db:
+    container_name: ghost-db
+    environment:
+      POSTGRES_DB: ghost_db
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: ghost_user
+    image: postgres:15-alpine
+    mem_limit: "268435456"
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 5432
+        published: "5432"
+        protocol: tcp
+    restart: always
+    volumes:
+      - type: bind
+        source: /home/ubuntu/app/data/postgres
+        target: /var/lib/postgresql/data
+        bind: {}
+  redis:
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --maxmemory
+      - 64mb
+      - --maxmemory-policy
+      - allkeys-lru
+    container_name: ghost-redis
+    image: redis:7-alpine
+    mem_limit: "134217728"
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 6379
+        published: "6379"
+        protocol: tcp
+    restart: always
+    volumes:
+      - type: bind
+        source: /home/ubuntu/app/data/redis
+        target: /data
+        bind: {}
+networks:
+  default:
+    name: app_default
+
+
+ubuntu@ghost-vnic:~/app$ docker network ls
+NETWORK ID     NAME          DRIVER    SCOPE
+757bbd91bed1   app_default   bridge    local
+387f21309e91   bridge        bridge    local
+d40f742f5927   host          host      local
+3c082d770d21   none          null      local
+
+
+ubuntu@ghost-vnic:~/app$ netstat -tulpn | grep -E '8080|5432|6379'
+(Not all processes could be identified, non-owned process info
+ will not be shown, you would have to be root to see it all.)
+tcp        0      0 0.0.0.0:8080            0.0.0.0:*               LISTEN      -
+tcp        0      0 0.0.0.0:5432            0.0.0.0:*               LISTEN      -
+tcp        0      0 0.0.0.0:6379            0.0.0.0:*               LISTEN      -
+tcp6       0      0 :::8080                 :::*                    LISTEN      -
+tcp6       0      0 :::5432                 :::*                    LISTEN      -
+tcp6       0      0 :::6379                 :::*                    LISTEN      -
+
+
+ubuntu@ghost-vnic:~/app$ docker stats --no-stream
+CONTAINER ID   NAME          CPU %     MEM USAGE / LIMIT   MEM %     NET I/O           BLOCK I/O         PIDS
+c14dff3e1523   ghost-app     0.25%     24.96MiB / 512MiB   4.87%     68.5MB / 63.5MB   396MB / 434MB     35
+2dedb370188d   ghost-db      0.00%     32.18MiB / 256MiB   12.57%    1.28MB / 1.59MB   137MB / 53.7MB    16
+38a851b55538   ghost-redis   0.68%     1.539MiB / 128MiB   1.20%     1.97MB / 64.8MB   41.6MB / 5.43MB   6
+
+
+ubuntu@ghost-vnic:~/app$ docker volume ls
+DRIVER    VOLUME NAME
+
+
+ubuntu@ghost-vnic:~/app$ docker compose ps
+WARN[0000] /home/ubuntu/app/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+NAME          IMAGE                COMMAND                  SERVICE   CREATED        STATUS        PORTS
+ghost-app     app-app              "java -jar app.jar"      app       13 hours ago   Up 13 hours   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+ghost-db      postgres:15-alpine   "docker-entrypoint.s…"   db        13 hours ago   Up 13 hours   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp
+ghost-redis   redis:7-alpine       "docker-entrypoint.s…"   redis     13 hours ago   Up 13 hours   0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp

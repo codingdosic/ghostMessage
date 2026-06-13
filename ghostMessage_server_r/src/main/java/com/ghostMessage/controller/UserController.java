@@ -10,7 +10,7 @@ import java.util.UUID;
 @RestController // rest api용 컨트롤러 선언
 @RequestMapping("/api/users") // 공통 주소 설정
 @RequiredArgsConstructor 
-@CrossOrigin(origins = "chrome-extension://eogkeipldeaeidaehgkjobegoabmfdcl") // cors 허용
+@CrossOrigin(origins = "chrome-extension://pmenhmekdcfeglgkicljlogcacogdalk") // cors 허용
 public class UserController {
 	
 	// 비즈니스 로직을 처리할 객체

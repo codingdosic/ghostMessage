@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  # 1. Spring Boot API Server
+  app:
+    image: ghcr.io/codingdosic/ghost-message-server:latest
+    container_name: ghost-app
+    expose:
+      - "8080"
+
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/ghost_db
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+
+      # JVM Memory Limit
+      - JAVA_OPTS=-Xms128m -Xmx256m
+
+    depends_on:
+      - db
+      - redis
+
+    restart: always
+
+    mem_limit: 512m
+
+  # 2. PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: ghost-db
+
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+
+    restart: always
+
+    mem_limit: 256m
+
+  # 3. Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: ghost-redis
+
+    command: redis-server --appendonly yes --maxmemory 64mb --maxmemory-policy allkeys-lru
+
+    volumes:
+      - ./data/redis:/data
+
+    restart: always
+
+    mem_limit: 128m
+  
+  pgadmin:
+    image: dpage/pgadmin4:8.8
+    container_name: ghost-pgadmin
+    
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+      
+    ports:
+      - "5050:80"
+     
+    restart: always
+  
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: ghost-tunnel
+
+    command: tunnel --no-autoupdate run
+
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+
+    restart: always
+
+    depends_on:
+      - app

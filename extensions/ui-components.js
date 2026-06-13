@@ -205,6 +205,84 @@ function createHUD() {
         <div class="hud-divider"></div>
         <div class="hud-item" title="Time until Reset (UTC 00:00)">⏳ <span id="hud-timer">--:--</span></div>
     `;
+
+    // 초기 상태(접힘 및 위치) 복구
+    chrome.storage.local.get(['hudCollapsed', 'hudPos'], (result) => {
+        if (result.hudCollapsed) hud.classList.add('collapsed');
+        if (result.hudPos) {
+            // 화면 밖으로 나갔는지 체크하여 복구
+            const winW = window.innerWidth;
+            const winH = window.innerHeight;
+            let safeLeft = Math.max(0, Math.min(result.hudPos.left, winW - 50));
+            let safeTop = Math.max(0, Math.min(result.hudPos.top, winH - 30));
+
+            hud.style.bottom = 'auto';
+            hud.style.left = safeLeft + 'px';
+            hud.style.top = safeTop + 'px';
+        }
+    });
+
+    // 드래그 및 클릭 로직
+    let isDragging = false;
+    let startX, startY, initialLeft, initialTop;
+    let dragThreshold = 5; // 드래그로 판정할 최소 이동 거리
+
+    hud.addEventListener('mousedown', (e) => {
+        isDragging = false;
+        startX = e.clientX;
+        startY = e.clientY;
+        
+        const rect = hud.getBoundingClientRect();
+        initialLeft = rect.left;
+        initialTop = rect.top;
+
+        const onMouseMove = (moveEvent) => {
+            const dx = moveEvent.clientX - startX;
+            const dy = moveEvent.clientY - startY;
+
+            if (!isDragging && (Math.abs(dx) > dragThreshold || Math.abs(dy) > dragThreshold)) {
+                isDragging = true;
+                hud.classList.add('dragging');
+                hud.style.bottom = 'auto';
+            }
+
+            if (isDragging) {
+                const winW = window.innerWidth;
+                const winH = window.innerHeight;
+                const hudW = hud.offsetWidth;
+                const hudH = hud.offsetHeight;
+
+                let nextLeft = initialLeft + dx;
+                let nextTop = initialTop + dy;
+
+                // 화면 경계 제한
+                nextLeft = Math.max(0, Math.min(nextLeft, winW - hudW));
+                nextTop = Math.max(0, Math.min(nextTop, winH - hudH));
+
+                hud.style.left = nextLeft + 'px';
+                hud.style.top = nextTop + 'px';
+            }
+        };
+
+        const onMouseUp = () => {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+
+            if (isDragging) {
+                setTimeout(() => hud.classList.remove('dragging'), 50);
+                const rect = hud.getBoundingClientRect();
+                chrome.storage.local.set({ hudPos: { top: rect.top, left: rect.left } });
+            } else {
+                // 단순 클릭인 경우 접기/펴기 토글
+                hud.classList.toggle('collapsed');
+                chrome.storage.local.set({ hudCollapsed: hud.classList.contains('collapsed') });
+            }
+        };
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    });
+
     document.body.appendChild(hud);
 }
 
