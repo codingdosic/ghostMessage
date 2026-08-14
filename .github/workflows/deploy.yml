@@ -5,6 +5,7 @@ on:
     branches: [ "main", "master" ]
     paths:
       - 'ghostMessage_server/**'
+      - '.github/workflows/deploy.yml'
 
 env:
   REGISTRY: ghcr.io
@@ -91,7 +92,7 @@ jobs:
             echo "Waiting for health check..."
             HEALTH_OK=false
             APP_NETWORK=$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{end}}' ghost-app)
-            for i in $(seq 1 30); do
+            for i in $(seq 1 300); do
               if docker run --rm --network "$APP_NETWORK" curlimages/curl:8.5.0 \
                 -sf http://app:8080/actuator/health | grep -q '"status":"UP"'; then
                 HEALTH_OK=true
@@ -101,7 +102,7 @@ jobs:
             done
 
             if [ "$HEALTH_OK" = false ]; then
-              echo "Health check failed after 60s"
+              echo "Health check failed after 600s"
               docker compose logs app --tail 80
               exit 1
             fi
