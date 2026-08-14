@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ghostMessage.domain.Message;
 import com.ghostMessage.dto.MessageRequestDTO;
 import com.ghostMessage.dto.MessageResponseDTO;
 import com.ghostMessage.service.MessageService;
 import com.ghostMessage.service.UserService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController // 1. REST API용 컨트롤러임을 선언 -> http 요청을 처리하고, json 응답을 반환 (Trigger CI/CD - Fix V2)
@@ -37,10 +37,12 @@ public class MessageController {
     // 메시지 남기기
     @PostMapping // post 요청
     public ResponseEntity<MessageResponseDTO> create(
-    		@RequestBody MessageRequestDTO dto,
+    		@Valid @RequestBody MessageRequestDTO dto,
     		@RequestParam String securityCode) {
 
+    	// 사용자 검증(사용자 조회 + 저장된 보안 코드와 요청의 보안 코드 대조)
     	userService.validateUser(dto.getAuthorId(), securityCode);
+    	// dto 생성
         MessageResponseDTO saved = messageService.createMessage(dto);
         
         return ResponseEntity.ok(saved); 

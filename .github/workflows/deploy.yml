@@ -9,7 +9,6 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository_owner }}/ghost-message-server
-  # 2026년 6월 Node.js 24 강제 대응 설정
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
@@ -30,11 +29,11 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: Build with Gradle
+      - name: Build and test with Gradle
         working-directory: ./ghostMessage_server
         run: |
           chmod +x ./gradlew
-          ./gradlew clean build -x test
+          ./gradlew clean build
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -55,26 +54,57 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Sync docker-compose.yml to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "ghostMessage_server/docker-compose.yml"
+          target: "/home/ubuntu/app/ghostMessage_server"
+          strip_components: 1
+
       - name: Deploy to Server via SSH
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            set -e # 에러 발생 시 즉시 중단하여 원인 파악 용이
+            set -e
             cd ~/app/ghostMessage_server
-            
-            # 1. 이미지 주소 확인 (디버깅용)
-            echo "Pulling latest image for codingdosic/ghost-message-server..."
-            
-            # 2. 최신 이미지 가져오기 (실패 시 여기서 멈춤)
+
+            echo "Logging in to GHCR (if GHCR_PAT is configured)..."
+            if [ -n "${{ secrets.GHCR_PAT }}" ]; then
+              echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+            fi
+
+            echo "Pulling latest image: ghcr.io/${{ github.repository_owner }}/ghost-message-server:latest"
             docker compose pull app
-            
-            # 3. 컨테이너 재실행
+
+            echo "Restarting app container..."
             docker compose up -d app
-            
-            # 4. 오래된 이미지 정리
+
+            echo "Waiting for health check..."
+            HEALTH_OK=false
+            APP_NETWORK=$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{end}}' ghost-app)
+            for i in $(seq 1 30); do
+              if docker run --rm --network "$APP_NETWORK" curlimages/curl:8.5.0 \
+                -sf http://app:8080/actuator/health | grep -q '"status":"UP"'; then
+                HEALTH_OK=true
+                break
+              fi
+              sleep 2
+            done
+
+            if [ "$HEALTH_OK" = false ]; then
+              echo "Health check failed after 60s"
+              docker compose logs app --tail 80
+              exit 1
+            fi
+
             docker image prune -f
-            
             echo "Deployment successful!"

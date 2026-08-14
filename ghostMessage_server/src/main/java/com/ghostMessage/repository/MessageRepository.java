@@ -18,7 +18,10 @@ public interface MessageRepository extends JpaRepository<Message, Long>{
 	
 	// 비관적 락을 적용하여 메시지 조회 (투표 점수 정합성 보장용)
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
-	@Query("select m from Message m where m.id = :id")
+	@Query(""
+			+ "select m "
+			+ "from Message "
+			+ "m where m.id = :id")
 	Optional<Message> findByIdWithLock(@Param("id") Long id);
 	
 	// 상속으로 인해 사용 가능해진 기능

@@ -22,6 +22,9 @@ Thumbs.db
 data/
 data/**
 
+# Secrets
+.env
+
 # Backup and Archive files
 *.sql
 *.tar.gz

@@ -1,11 +1,17 @@
 package com.ghostMessage.service;
 
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
 import com.ghostMessage.domain.User;
+import com.ghostMessage.dto.UserResponseDTO;
+import com.ghostMessage.exception.ApiException;
 import com.ghostMessage.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
+import com.ghostMessage.util.SecurityCodeHasher;
+
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import java.util.UUID;
 
 @Service
@@ -13,45 +19,52 @@ import java.util.UUID;
 public class UserService {
     private final UserRepository userRepository;
 
-    // 사용자 생성
     @Transactional
-    public User registerNewUser(String nickname) {
-    	
-    	// 사용자 객체
+    public UserResponseDTO registerNewUser(String nickname) {
         User user = new User();
-        
-        // 이름 설정 GHOST_ + UUID 6번째 자리까지
-        user.setNickname(nickname != null ? nickname : " GHOST_" + UUID.randomUUID().toString().substring(0, 7));
-        
-        // uuid는 엔티티의 @PrePersist에서 자동 생성됨
-        return userRepository.save(user);
+        user.setNickname(nickname != null ? nickname : "GHOST_" + UUID.randomUUID().toString().substring(0, 7));
+
+        String plainCode = SecurityCodeHasher.generateCode(8);
+        user.setSecurityCode(SecurityCodeHasher.hash(plainCode));
+
+        User saved = userRepository.save(user);
+        return UserResponseDTO.from(saved, plainCode);
     }
 
-    // 사용자 정보
-    @Cacheable(value = "userInfo", key = "#uuid")
-    public User getUser(UUID uuid) {
-        return userRepository.findById(uuid)
-                .orElseThrow(() -> new RuntimeException("User not found."));
-    }
-    
-    public User recoverUser(UUID uuid, String securityCode) {
+    @Cacheable(value = "userInfo", key = "#uuid", sync = true)
+    public UserResponseDTO getUser(UUID uuid) {
         User user = userRepository.findById(uuid)
-                .orElseThrow(() -> new RuntimeException("User not found."));
-        
-        if (!user.getSecurityCode().equals(securityCode)) {
-            throw new RuntimeException("Invalid security code.");
-        }
-        
-        return user;
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found."));
+        return UserResponseDTO.from(user);
     }
-    
+
+    public UserResponseDTO recoverUser(UUID uuid, String securityCode) {
+        User user = userRepository.findById(uuid)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found."));
+
+        if (!SecurityCodeHasher.matches(securityCode, user.getSecurityCode())) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid security code.");
+        }
+
+        migrateLegacySecurityCodeIfNeeded(user, securityCode);
+        return UserResponseDTO.from(user);
+    }
+
     public void validateUser(UUID uuid, String securityCode) {
         User user = userRepository.findById(uuid)
-                .orElseThrow(() -> new RuntimeException("User not found."));
-        
-        if (securityCode == null || !user.getSecurityCode().equals(securityCode)) {
-            throw new RuntimeException("Unauthorized: Invalid security code.");
+                .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "User not found."));
+
+        if (securityCode == null || !SecurityCodeHasher.matches(securityCode, user.getSecurityCode())) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "Unauthorized: Invalid security code.");
+        }
+
+        migrateLegacySecurityCodeIfNeeded(user, securityCode);
+    }
+
+    private void migrateLegacySecurityCodeIfNeeded(User user, String plainSecurityCode) {
+        if (SecurityCodeHasher.isLegacyPlainText(user.getSecurityCode())) {
+            user.setSecurityCode(SecurityCodeHasher.hash(plainSecurityCode));
+            userRepository.save(user);
         }
     }
-    
-    }
+}

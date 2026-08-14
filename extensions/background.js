@@ -107,7 +107,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             })
             .then(res => {
                 if (res.ok) sendResponse({ success: true });
-                else sendResponse({ success: false, error: "No permission to delete or server error." });
+                else return res.json().then(data => {
+                    sendResponse({ success: false, error: data.message || "No permission to delete or server error." });
+                });
             })
             .catch(err => sendResponse({ success: false, error: err.message }));
         });
@@ -136,8 +138,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     if (request.action === "fetchUserInfo") {
         fetch(`${SERVER_URL}/api/users/${request.userId}`)
-            .then(res => res.json())
-            .then(data => sendResponse({ success: true, data }))
+            .then(async res => {
+                const data = await res.json();
+                if (res.ok) return sendResponse({ success: true, data });
+                return sendResponse({ success: false, error: data.message || "Failed to load user info." });
+            })
             .catch(err => sendResponse({ success: false, error: err.message }));
         return true;
     }

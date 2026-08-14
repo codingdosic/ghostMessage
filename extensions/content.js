@@ -33,13 +33,25 @@ function init() {
 }
 
 /**
+ * 서버 응답 데이터로 messageMap을 갱신하고 UI를 업데이트합니다.
+ */
+function applyServerMessages(data) {
+    messageMap.clear();
+    data.forEach(msg => {
+        const key = normalizeUrl(msg.anchorKey);
+        if (!messageMap.has(key)) messageMap.set(key, []);
+        messageMap.get(key).push(msg);
+    });
+    applyHighlights();
+}
+
+/**
  * 주기적으로 서버 상태를 체크하는 Heartbeat (30초 주기)
  */
 function startHeartbeat() {
     if (window.ghostHeartbeatInterval) clearInterval(window.ghostHeartbeatInterval);
     
     window.ghostHeartbeatInterval = setInterval(() => {
-        // 이미 연결 중(재시도 중)인 상태면 중복 체크 방지
         const statusEl = document.getElementById('hud-status');
         if (statusEl && statusEl.classList.contains('connecting')) return;
 
@@ -48,10 +60,13 @@ function startHeartbeat() {
             if (!response || !response.success) {
                 console.log("[GhostMessage] Heartbeat failed, switching to connecting status...");
                 updateHUD('connecting');
-                syncWithServer(); // 재연결 프로세스 시작
+                syncWithServer();
+            } else if (response.data) {
+                applyServerMessages(response.data);
+                updateHUD('online');
             }
         });
-    }, 30000); // 30초마다 체크
+    }, 30000);
 }
 
 /**
@@ -63,17 +78,10 @@ function syncWithServer() {
     
     fetchAllMessages(pageUrl, (response) => {
         if (response && response.success && response.data) {
-            messageMap.clear();
-            response.data.forEach(msg => {
-                const key = normalizeUrl(msg.anchorKey);
-                if (!messageMap.has(key)) messageMap.set(key, []);
-                messageMap.get(key).push(msg);
-            });
-            
-            applyHighlights();
+            applyServerMessages(response.data);
             startObserving();
             updateHUD('online');
-            startHeartbeat(); // 연결 성공 시 하트비트 확실히 재시작
+            startHeartbeat();
             isInitializing = false;
             console.log("[GhostMessage] Sync complete.");
         } else {

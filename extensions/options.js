@@ -217,15 +217,16 @@ function renderMyMessages() {
 }
 // 1. 현재 정보 불러오기
 function loadAccountInfo() {
-    chrome.storage.local.get(['userId'], (result) => {
-        const userId = result.userId;
-        if (!userId) return;
+    chrome.storage.local.get(['userId', 'securityCode'], (result) => {
+        if (!result.userId) return;
 
-        fetch(`${SERVER_URL}/api/users/${userId}`)
+        document.getElementById('currentUuid').value = result.userId;
+        document.getElementById('currentSecurityCode').value = result.securityCode || '';
+
+        fetch(`${SERVER_URL}/api/users/${result.userId}`)
             .then(res => res.json())
             .then(user => {
                 document.getElementById('currentUuid').value = user.uuid;
-                document.getElementById('currentSecurityCode').value = user.securityCode;
             })
             .catch(err => console.error("Failed to load account info:", err));
     });
@@ -271,7 +272,10 @@ document.getElementById('recoverBtn').onclick = () => {
             .then(async res => {
                 if (res.ok) {
                     const user = await res.json();
-                    chrome.storage.local.set({ userId: user.uuid }, () => {
+                    chrome.storage.local.set({
+                        userId: user.uuid,
+                        securityCode: code
+                    }, () => {
                         alert("Account recovered successfully! The page will reload.");
                         location.reload();
                     });

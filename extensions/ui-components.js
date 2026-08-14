@@ -84,11 +84,13 @@ function showWriteModal(onSave) {
     document.getElementById('modal-save').onclick = () => {
         const content = contentInput.value.trim();
         const type = document.getElementById('modal-type').value;
-        if (content.length > 0) {
+        if (content.length === 0) {
+            showToast("메시지를 입력해 주세요.", "error");
+        } else if (content.length > 100) {
+            showToast("메시지는 100자 이내로 입력해 주세요.", "error");
+        } else {
             onSave(content, type);
             overlay.remove();
-        } else {
-            showToast("메시지를 입력해 주세요.", "error");
         }
     };
 }

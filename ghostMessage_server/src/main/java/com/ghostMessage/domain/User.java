@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.Instant;
 import java.util.UUID;
-import java.security.SecureRandom;
 
 @Entity // DB 테이블과 매핑됨
 @Table(name = "users") // 테이블 이름을 user 로 함
@@ -41,23 +40,7 @@ public class User {
 		if(this.uuid == null) {
 			this.uuid = UUID.randomUUID(); // 식별자 없을 경우 추가
 		}
-		
-		if(this.securityCode == null) {
-	        this.securityCode = generateCode(8);
-	    }
 	}
-	
-	private String generateCode(int length) {
-	    String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-	    SecureRandom random = new SecureRandom();
-	    StringBuilder sb = new StringBuilder(length);
-	
-	    for (int i = 0; i < length; i++) {
-	    	int index = random.nextInt(characters.length());
-	    	sb.append(characters.charAt(index));
-	    }
-	    return sb.toString();
-	 }
 }
 
 

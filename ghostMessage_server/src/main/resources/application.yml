@@ -18,23 +18,20 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate # Flyway 도입 후에는 변경 내역을 validate만 수행
+      ddl-auto: update
     defer-datasource-initialization: true
-    show-sql: true # 실행되는 SQL문을 콘솔창에 보여줌
+    show-sql: true
     properties:
       hibernate:
-        format_sql: true # SQL문을 보기 좋게 정렬함
-        dialect: org.hibernate.dialect.PostgreSQLDialect # DB에 맞는 언어 설정
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
   sql:
     init:
-      mode: never # Flyway 사용 시 data.sql은 비활성화
+      mode: never
 
   flyway:
-    enabled: true
-    baseline-on-migrate: true # 기존 DB가 있는 경우 필수
-    baseline-version: 0
-    locations: classpath:db/migration
+    enabled: false
 
   management:
     endpoints:

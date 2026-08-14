@@ -14,7 +14,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.ghostMessage.domain.User;
+import com.ghostMessage.exception.ApiException;
 import com.ghostMessage.repository.UserRepository;
+import com.ghostMessage.util.SecurityCodeHasher;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -28,34 +30,43 @@ class UserServiceTest {
     @Test
     @DisplayName("사용자 검증 성공 - 유효한 보안 코드")
     void validateUser_Success() {
-        // given
         UUID userId = UUID.randomUUID();
-        String securityCode = "correct-code";
+        String plainCode = "ABCD1234";
         User user = new User();
         user.setUuid(userId);
-        user.setSecurityCode(securityCode);
+        user.setSecurityCode(SecurityCodeHasher.hash(plainCode));
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        // when & then
-        assertDoesNotThrow(() -> {
-            userService.validateUser(userId, securityCode);
-        });
+        assertDoesNotThrow(() -> userService.validateUser(userId, plainCode));
+    }
+
+    @Test
+    @DisplayName("사용자 검증 성공 - 레거시 평문 코드")
+    void validateUser_Success_LegacyPlainText() {
+        UUID userId = UUID.randomUUID();
+        String plainCode = "LEGACY01";
+        User user = new User();
+        user.setUuid(userId);
+        user.setSecurityCode(plainCode);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        assertDoesNotThrow(() -> userService.validateUser(userId, plainCode));
+        verify(userRepository, times(1)).save(user);
     }
 
     @Test
     @DisplayName("사용자 검증 실패 - 잘못된 보안 코드")
     void validateUser_Fail_InvalidCode() {
-        // given
         UUID userId = UUID.randomUUID();
         User user = new User();
         user.setUuid(userId);
-        user.setSecurityCode("correct-code");
+        user.setSecurityCode(SecurityCodeHasher.hash("correct-code"));
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        // when & then
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+        ApiException exception = assertThrows(ApiException.class, () -> {
             userService.validateUser(userId, "wrong-code");
         });
 
@@ -65,12 +76,10 @@ class UserServiceTest {
     @Test
     @DisplayName("사용자 검증 실패 - 존재하지 않는 사용자")
     void validateUser_Fail_UserNotFound() {
-        // given
         UUID userId = UUID.randomUUID();
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        // when & then
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+        ApiException exception = assertThrows(ApiException.class, () -> {
             userService.validateUser(userId, "any-code");
         });
 
