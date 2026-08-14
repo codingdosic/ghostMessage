@@ -97,5 +97,11 @@ function fetchUserInfo(userId, callback) {
     chrome.runtime.sendMessage({ 
         action: "fetchUserInfo", 
         userId: userId 
-    }, callback);
+    }, (response) => {
+        if (chrome.runtime.lastError) {
+            callback({ success: false, error: chrome.runtime.lastError.message });
+            return;
+        }
+        callback(response);
+    });
 }

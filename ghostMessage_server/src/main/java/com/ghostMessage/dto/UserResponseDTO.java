@@ -5,11 +5,15 @@ import java.util.UUID;
 
 import com.ghostMessage.domain.User;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserResponseDTO {
 
     private UUID uuid;

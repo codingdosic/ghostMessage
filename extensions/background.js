@@ -137,14 +137,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 
     if (request.action === "fetchUserInfo") {
-        fetch(`${SERVER_URL}/api/users/${request.userId}`)
+        return fetch(`${SERVER_URL}/api/users/${request.userId}`)
             .then(async res => {
                 const data = await res.json();
-                if (res.ok) return sendResponse({ success: true, data });
-                return sendResponse({ success: false, error: data.message || "Failed to load user info." });
+                if (res.ok) return { success: true, data };
+                return { success: false, error: data.message || "Failed to load user info." };
             })
-            .catch(err => sendResponse({ success: false, error: err.message }));
-        return true;
+            .catch(err => ({ success: false, error: err.message }));
     }
 
     if (request.action === "updateMenuVisibility") {
@@ -155,4 +154,4 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
         return false;
     }
-    });
+});

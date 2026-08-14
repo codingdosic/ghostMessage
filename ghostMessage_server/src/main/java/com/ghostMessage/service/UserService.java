@@ -1,6 +1,5 @@
 package com.ghostMessage.service;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +30,6 @@ public class UserService {
         return UserResponseDTO.from(saved, plainCode);
     }
 
-    @Cacheable(value = "userInfo", key = "#uuid", sync = true)
     public UserResponseDTO getUser(UUID uuid) {
         User user = userRepository.findById(uuid)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found."));
