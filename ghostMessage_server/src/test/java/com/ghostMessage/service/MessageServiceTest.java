@@ -104,6 +104,7 @@ class MessageServiceTest {
 
         Message message = new Message();
         message.setId(messageId);
+        message.setAuthorId(userId);
         message.setPageUrl("https://example.com");
         message.setAnchorKey("key");
         message.setUpVoteScore(0);
@@ -112,7 +113,7 @@ class MessageServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(messageRepository.findByIdWithLock(messageId)).thenReturn(Optional.of(message));
         when(voteRepository.findByMessageIdAndUserId(messageId, userId)).thenReturn(Optional.empty());
-        when(userRepository.findByUuidIn(any())).thenReturn(List.of(user));
+        when(userRepository.findByUuidIn(any())).thenReturn(List.of());
 
         MessageResponseDTO response = messageService.vote(messageId, "UP", userId);
 
@@ -174,6 +175,7 @@ class MessageServiceTest {
 
         Message message = new Message();
         message.setId(messageId);
+        message.setAuthorId(userId);
         message.setPageUrl("https://example.com");
         message.setAnchorKey("key");
         message.setUpVoteScore(1);
@@ -184,7 +186,7 @@ class MessageServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(messageRepository.findByIdWithLock(messageId)).thenReturn(Optional.of(message));
         when(voteRepository.findByMessageIdAndUserId(messageId, userId)).thenReturn(Optional.of(existingVote));
-        when(userRepository.findByUuidIn(any())).thenReturn(List.of(user));
+        when(userRepository.findByUuidIn(any())).thenReturn(List.of());
 
         MessageResponseDTO response = messageService.vote(messageId, "DOWN", userId);
 
