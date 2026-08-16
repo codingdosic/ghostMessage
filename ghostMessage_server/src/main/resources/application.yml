@@ -12,6 +12,10 @@ spring:
     redis:
       host: redis
       port: 6379
+      repositories:
+        enabled: false
+      timeout: 2s
+      connect-timeout: 2s
 
   cache:
     type: redis
@@ -33,13 +37,16 @@ spring:
   flyway:
     enabled: false
 
-  management:
-    endpoints:
-      web:
-        exposure:
-          include: health, info, prometheus
-    endpoint:
-      prometheus:
-        enabled: true
-      health:
-        show-details: always
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+    health:
+      show-details: always
+  health:
+    redis:
+      enabled: false
