@@ -7,6 +7,7 @@
 !/extensions/
 !/ghostMessage_server/
 !/.github/
+!/assets/
 !/.gitignore
 !/README.md
 !/ghostMessage_server/Dockerfile

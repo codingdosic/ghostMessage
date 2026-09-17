@@ -41,23 +41,23 @@ ghostMessage 는 웹페이지의 특정 요소 위에 다른 사용자들이 남
 ### 주요 화면 (예시)
 
 #### 메시지 발견 및 호버 툴팁
-<img src="assets\messageHovering.png" alt="호버 툴팁" width="500"/>
+<img src="assets/messageHovering.png" alt="호버 툴팁" width="500"/>
 
 - 링크 호버 시 나타나는 미니멀한 메시지 팝업
 - 메시지 타입 및 작성일시 제공 및 추천 기능 지원
 
 #### 메시지 작성 UI
-<img src="assets\messageWritingModal.png" alt="메시지 작성" width="500"/>
+<img src="assets/messageWritingModal.png" alt="메시지 작성" width="500"/>
 
 - 링크에서 우클릭 후 메시지 작성 모달 오픈 가능
 
 #### 실시간 HUD 
-<img src="assets\informationHud.png" alt="HUD 및 하이라이트" width="500"/>
+<img src="assets/informationHud.png" alt="HUD 및 하이라이트" width="500"/>
 
 - 페이지 좌하단의 HUD를 통한 현 페이지의 메시지 수, 잔여 행동 횟수 및 한도 초기화까지 남은 시간 시각화
 
 #### 익스텐션 설정 페이지
-<img src="assets\optionsPage.png" alt="설정 페이지" width="500"/>
+<img src="assets/optionsPage.png" alt="설정 페이지" width="500"/>
 
 - 메시지 정렬 기준, 색상 변경 및 작성 메시지 조회 지원
 
@@ -94,7 +94,7 @@ ghostMessage 는 웹페이지의 특정 요소 위에 다른 사용자들이 남
 프론트엔드는 사용자의 브라우징 경험을 방해하지 않도록 웹페이지와 격리된 구조를 가지며, 백그라운드 스크립트를 통해 중앙 집중식 API 통신을 수행합니다.
 
 
-<img src="assets\extension.png" alt="프론트엔드 구조" width="700"/>
+<img src="assets/extension.png" alt="프론트엔드 구조" width="700"/>
 
 <br>
 
@@ -102,7 +102,7 @@ ghostMessage 는 웹페이지의 특정 요소 위에 다른 사용자들이 남
 백엔드는 **계층형 아키텍처(Layered Architecture)**를 채택하여 각 계층의 책임을 분리하고, Redis 캐싱 레이어를 통해 성능을 최적화했습니다.
 
 
-<img src="assets\backend.png" alt="백엔드 구조" width="700"/>
+<img src="assets/backend.png" alt="백엔드 구조" width="700"/>
 
 ### 2. 설계 원칙
 - **관심사 분리 (SoC)**: 백엔드는 핸들러-서비스-리포지토리 구조를 통해 비즈니스 로직과 데이터 접근 로직을 분리했습니다.
@@ -117,7 +117,7 @@ ghostMessage 는 웹페이지의 특정 요소 위에 다른 사용자들이 남
 ### 1. 배포 아키텍처
 Docker Compose를 사용하여 애플리케이션, 데이터베이스, 캐시 서버를 하나의 가상 네트워크로 묶어 관리합니다.
 
-<img src="assets\docker.png" alt="docker 구조" width="400"/>
+<img src="assets/docker.png" alt="docker 구조" width="400"/>
 
 ### 2. 컨테이너 구성 및 리소스 관리
 각 서비스는 시스템의 안정성을 위해 메모리 제한(`mem_limit`) 및 재시작 전략(`restart: always`)이 적용되어 있습니다.
