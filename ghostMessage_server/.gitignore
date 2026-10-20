@@ -23,7 +23,7 @@ data/
 data/**
 
 # Secrets
-.env
+.env*
 
 # Backup and Archive files
 *.sql
