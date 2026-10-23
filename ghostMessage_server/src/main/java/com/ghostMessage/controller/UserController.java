@@ -26,10 +26,10 @@ public class UserController {
         return ResponseEntity.ok(userService.getUser(uuid));
     }
 
-    @GetMapping("/recover")
+    @PostMapping("/recover")
     public ResponseEntity<UserResponseDTO> recover(
             @RequestParam(name = "uuid") UUID uuid,
-            @RequestParam(name = "securityCode") String securityCode) {
+            @RequestHeader(value = "X-Security-Code", required = false) String securityCode) {
         return ResponseEntity.ok(userService.recoverUser(uuid, securityCode));
     }
 }

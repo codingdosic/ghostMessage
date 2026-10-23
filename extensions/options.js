@@ -268,7 +268,10 @@ document.getElementById('recoverBtn').onclick = () => {
             return;
         }
 
-        fetch(`${SERVER_URL}/api/users/recover?uuid=${uuid}&securityCode=${code}`)
+        fetch(`${SERVER_URL}/api/users/recover?uuid=${encodeURIComponent(uuid)}`, {
+            method: "POST",
+            headers: { "X-Security-Code": code }
+        })
             .then(async res => {
                 if (res.ok) {
                     const user = await res.json();

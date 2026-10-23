@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,7 +39,7 @@ public class MessageController {
     @PostMapping // post 요청
     public ResponseEntity<MessageResponseDTO> create(
     		@Valid @RequestBody MessageRequestDTO dto,
-    		@RequestParam String securityCode) {
+            @RequestHeader(value = "X-Security-Code", required = false) String securityCode) {
 
     	// 사용자 검증(사용자 조회 + 저장된 보안 코드와 요청의 보안 코드 대조)
     	userService.validateUser(dto.getAuthorId(), securityCode);
@@ -54,7 +55,7 @@ public class MessageController {
     		@PathVariable(name = "id") Long id, // 투표할 메시지 id
     		@RequestParam(name = "type") String type, // 투표 타입(추천 / 비추천)
     		@RequestParam(name = "userId") UUID userId,
-    		@RequestParam String securityCode) { // [추가] 누가 투표했는지 정보
+            @RequestHeader(value = "X-Security-Code", required = false) String securityCode) { // [추가] 누가 투표했는지 정보
     	
     	userService.validateUser(userId, securityCode);
     	MessageResponseDTO updated = messageService.vote(id, type, userId);
@@ -101,7 +102,7 @@ public class MessageController {
     public ResponseEntity<Void> delete(
     		@PathVariable(name = "id") Long id, // 투표할 메시지 id
     		@RequestParam(name = "authorId") UUID authorId,
-    		@RequestParam String securityCode){
+            @RequestHeader(value = "X-Security-Code", required = false) String securityCode){
     	
     	userService.validateUser(authorId, securityCode);
     	messageService.deleteMessage(id, authorId);

@@ -66,9 +66,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "saveMessage") {
         chrome.storage.local.get(['securityCode'], (res) => {
             const securityCode = res.securityCode || "";
-            fetch(`${API_BASE_URL}?securityCode=${securityCode}`, {
+            fetch(API_BASE_URL, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", "X-Security-Code": securityCode },
                 body: JSON.stringify(request.data)
             })
             .then(async res => {
@@ -85,8 +85,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "voteMessage") {
         chrome.storage.local.get(['securityCode'], (res) => {
             const securityCode = res.securityCode || "";
-            fetch(`${API_BASE_URL}/${request.messageId}/vote?type=${request.type}&userId=${request.userId}&securityCode=${securityCode}`, {
-                method: "POST"
+            fetch(`${API_BASE_URL}/${request.messageId}/vote?type=${request.type}&userId=${request.userId}`, {
+                method: "POST",
+                headers: { "X-Security-Code": securityCode }
             })
             .then(async res => {
                 const data = await res.json();
@@ -102,8 +103,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "deleteMessage") {
         chrome.storage.local.get(['securityCode'], (res) => {
             const securityCode = res.securityCode || "";
-            fetch(`${API_BASE_URL}/${request.messageId}?authorId=${request.authorId}&securityCode=${securityCode}`, {
-                method: "DELETE"
+            fetch(`${API_BASE_URL}/${request.messageId}?authorId=${request.authorId}`, {
+                method: "DELETE",
+                headers: { "X-Security-Code": securityCode }
             })
             .then(res => {
                 if (res.ok) sendResponse({ success: true });
