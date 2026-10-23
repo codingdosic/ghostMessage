@@ -10,7 +10,10 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "chrome-extension://pmenhmekdcfeglgkicljlogcacogdalk")
+@CrossOrigin(origins = {
+        "chrome-extension://pmenhmekdcfeglgkicljlogcacogdalk",
+        "chrome-extension://omjhoniedchldcdalhmemchffepnphml"
+})
 public class UserController {
 
     private final UserService userService;
